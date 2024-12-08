@@ -1,2 +1,2 @@
-# PRKAN
-PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks
+# We-KAN
+We-KAN: All Kolmogorov-Arnold Networks We Know
