@@ -42,18 +42,18 @@ You can open a pull to add your KANs in this section.
 * *n_input*: The number of input neurons (default: 28^2 = 784).
 * *n_hidden*: The number of hidden neurons. We use only 1 hidden layer. You can modify the code (run.py) for more layers.
 * *n_output*: The number of output neurons (classes). For MNIST and Fashion-MNIST, there are 10 classes.
-* *grid_size*: The size of grid (default: 5). Use with bsrbf_kan and efficient_kan.
+* *grid_size*: The size of the grid (default: 5). Use with bsrbf_kan and efficient_kan.
 * *spline_order*: The order of spline (default: 3). Use with bsrbf_kan and efficient_kan.
 * *num_grids*: The number of grids, equals grid_size + spline_order (default: 8). Use with fast_kan and faster_kan.
 * *device*: use "cuda" or "cpu" (default: "cuda").
 * *n_examples*: the number of examples in the training set used for training (default: 0, mean use all training data)
 * *note*: A note saved in the model name file.
 * *n_part*: the part of data used to train data (default: 0, mean use all training data, 0.1 means 10%).
-* *func_list*: the name of functions used in FC-KAN (default='dog,rbf'). Other functions are *bs* and *base*, and functions in SKAN ('shifted_softplus', 'arctan', 'relu', 'elu', 'gelup', 'leaky_relu', 'swish', 'softplus', 'sigmoid', 'hard_sigmoid', 'sin', 'cos'). 
+* *func_list*: the name of functions used in FC-KAN (default='dog,rbf'). Other functions are *bs* and *base*, and functions in SKAN (*shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *sinv, *cos*). 
 * *combined_type*: the type of data combination used in the output (default='quadratic', others are *sum*, *product*, *sum_product*, *concat*, *max*, *min*, *mean*).
 
 ## Commands
-### BSRBF-KAN
+### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, MLP
 ```python run.py --mode "train" --ds_name "mnist" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
 
 ```python run.py --mode "train" --ds_name "mnist" --model_name "efficient_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
@@ -67,7 +67,7 @@ You can open a pull to add your KANs in this section.
 ```python run.py --mode "train" --ds_name "mnist" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10```
 
 ### FC-KAN
-FC-KAN models (Difference of Gaussians + B-splines) can be trained on MNIST with different output combinations as follow.
+FC-KAN models (Difference of Gaussians + B-splines) can be trained on MNIST with different output combinations as follows.
 
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "sum"```
 
@@ -78,3 +78,5 @@ FC-KAN models (Difference of Gaussians + B-splines) can be trained on MNIST with
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "quadratic"```
 
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "concat"```
+
+### PRKAN
