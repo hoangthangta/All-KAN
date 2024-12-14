@@ -53,7 +53,7 @@ You can open a pull to add your KANs in this section.
 * *combined_type*: the type of data combination used in the output (default='quadratic', others are *sum*, *product*, *sum_product*, *concat*, *max*, *min*, *mean*).
 
 ## Commands
-### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, MLP
+### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
 ```python run.py --mode "train" --ds_name "mnist" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
 
 ```python run.py --mode "train" --ds_name "mnist" --model_name "efficient_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
