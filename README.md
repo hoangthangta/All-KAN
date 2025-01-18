@@ -10,6 +10,9 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 ## Papers
 - **KAN: Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2404.19756
 - **KAN 2.0: Kolmogorov-Arnold Networks Meet Science**: https://arxiv.org/abs/2408.10205
+- **PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2501.07032
+- **BSRBF-KAN: A combination of B-splines and Radial Basis Functions in Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2406.11173
+- **Fc-kan: Function combinations in kolmogorov-arnold networks**: https://arxiv.org/abs/2409.01763
 
 # Existing KANs
 ## My KANs
@@ -85,8 +88,9 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 ### PRKAN
 Updating...
 
-# Papers
+# How to cite?
 
+You can cite these papers.
 ```
 @article{ta2025prkan,
   title={PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks},
