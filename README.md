@@ -60,6 +60,8 @@ You can open a pull to add your KANs in this section.
 ## Commands
 ### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
 For BSBRF-KAN, also see: https://github.com/hoangthangta/BSRBF_KAN.
+<details>
+<summary><b>Click here for code!</b></summary>
 
 ```python run.py --mode "train" --ds_name "mnist" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
 
@@ -73,8 +75,14 @@ For BSBRF-KAN, also see: https://github.com/hoangthangta/BSRBF_KAN.
 
 ```python run.py --mode "train" --ds_name "mnist" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10```
 
+</details>
+
+
 ### FC-KAN
 For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Difference of Gaussians + B-splines) can be trained on MNIST with different output combinations as follows.
+
+<details>
+<summary><b>Click here for code!</b></summary>
 
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "sum"```
 
@@ -85,6 +93,7 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "quadratic"```
 
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "concat"```
+</details>
 
 ### PRKAN
 Updating...
