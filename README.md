@@ -80,3 +80,4 @@ FC-KAN models (Difference of Gaussians + B-splines) can be trained on MNIST with
 ```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "concat"```
 
 ### PRKAN
+Updating...
