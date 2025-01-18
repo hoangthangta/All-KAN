@@ -7,6 +7,7 @@ Feel free to suggest or integrate your KAN into this repository—contributions 
 
 # Kolmogorov-Arnold Networks
 Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture inspired by the Kolmogorov-Arnold Representation Theorem. This theorem states that any continuous multivariable function can be represented as a superposition of a finite number of univariate functions.
+
 ## Papers
 - **KAN: Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2404.19756
 - **KAN 2.0: Kolmogorov-Arnold Networks Meet Science**: https://arxiv.org/abs/2408.10205
