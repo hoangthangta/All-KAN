@@ -56,7 +56,7 @@ You can open a pull to add your KANs in this section.
 * *n_part*: the part of data used to train data (default: 0, mean use all training data, 0.1 means 10%).
 * *func_list*: the name of functions used in FC-KAN (default='dog,rbf'). Other functions are *bs* and *base*, and functions in SKAN (*shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *sinv, *cos*). 
 * *combined_type*: the type of data combination used in the output (default='quadratic', others are *sum*, *product*, *sum_product*, *concat*, *max*, *min*, *mean*).
-* *basis_function*: used in SKAN (default='sin', others are *shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *sinv, *cos*).
+* *basis_function*: used in SKAN (default='sin', others are *shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *cos*).
 * *func*: used in PRKAN (default='rbf', other is *layer*)
 * *methods*: used in PRKAN (default='attention', other are *conv1d_1* = convolution, *conv1d_2* = convolution + pooling, *attention*, *fw* = feature weight vector, *ds* = dim-sum)
 * *norm_type*: used in PRKAN (default='layer', other is *batch*)
