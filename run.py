@@ -7,12 +7,14 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+from ptflops import get_model_complexity_info
+import copy
 
 import requests
 
 #import numpy as np
 from file_io import *
-from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN
+from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN
 
 from pathlib import Path
 from PIL import Image
@@ -174,12 +176,17 @@ def run(args):
     elif(args.model_name == 'efficient_kan'):
         model = EfficientKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order)
     elif(args.model_name == 'prkan'):
-        model = PRKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order, num_grids = args.num_grids, func = args.func, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type)
+        model = PRKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order, num_grids = args.num_grids, func = args.func, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type, norm_pos = args.norm_pos)
     elif(args.model_name == 'skan'):
         model = SKAN([args.n_input, args.n_hidden, args.n_output], basis_function = args.basis_function) # lshifted_softplus, larctan 
+    elif(args.model_name == 'relu_kan'):
+        model = SKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation) 
+        
     else:
         raise ValueError("Unsupported network type.")
     model.to(device)
+    
+    
     
     # Define optimizer
     lr = 1e-3
@@ -259,11 +266,16 @@ def run(args):
     print(f"Training time (s): {end-start}")
     write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')
     
+    # # Calculate parameters
     # remove unused parameters and count the number of parameters after that
-    
     remove_unused_params(model)
     torch.save(model, output_path + '/' + saved_model_name)
     count_params(model)
+    
+    model = copy.deepcopy(model).cpu() # for more correct count
+    # Calculate FLOPs
+    flops, _ = get_model_complexity_info(model, (args.n_input,), as_strings=True, print_per_layer_stat=True)
+    print(f"FLOPs: {flops}")
     
 
 def predict_set(args):
@@ -401,6 +413,7 @@ if __name__ == "__main__":
     parser.add_argument('--methods', type=str, default='conv')
     parser.add_argument('--norm_type', type=str, default='batch')
     parser.add_argument('--base_activation', type=str, default='selu')
+    parser.add_argument('--norm_pos', type=int, default=1)
 
     args = parser.parse_args()
     
@@ -413,7 +426,7 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "fc_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --func_list "dog,sin" --combined_type "sum"
 
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 100 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 7 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "skan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "sin"
 
@@ -423,9 +436,9 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "gottlieb_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "mnist"
 
-#python run.py --mode "train" --model_name "mlp" --epochs 15 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full"
+#python run.py --mode "train" --model_name "mlp" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_test"
 
-# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "layer" --base_activation "selu" --methods "conv1d_2" --combined_type "product"
+# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "" --base_activation "silu" --methods "conv2d" --combined_type "product"
 
 #python run.py --mode "predict_set" --model_name "bsrbf_kan" --model_path='papers//BSRBF-KAN//bsrbf_paper//mnist//bsrbf_kan//bsrbf_kan__mnist__full_0.pth' --ds_name "mnist" --batch_size 64
 
