@@ -102,6 +102,8 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 </details>
 
 ### SKAN
+<details>
+<summary><b>Click here for code!</b></summary>
 ```
 python run.py --mode "train" --model_name "skan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "arctan"
 ```
@@ -109,10 +111,12 @@ python run.py --mode "train" --model_name "skan" --epochs 25 --batch_size 64 --n
 ```
 python run.py --mode "train" --model_name "skan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --basis_function "arctan"
 ```
+</details>
 
 ### PRKAN
 <details>
 <summary><b>Click here for code!</b></summary>
+
 ```
 python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 1;
 ```
