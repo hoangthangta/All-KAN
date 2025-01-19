@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-    
 class PRKANLayer(nn.Module):
     def __init__(
         self,
@@ -19,7 +18,8 @@ class PRKANLayer(nn.Module):
         denominator: float = None,  # larger denominators lead to smoother basis
         base_activation = 'silu',
         methods = ['conv'],
-        combined_type = 'sum'
+        combined_type = 'sum',
+        norm_pos =  1 # position to place data norm
 
     ) -> None:
         super().__init__()
@@ -31,7 +31,8 @@ class PRKANLayer(nn.Module):
         self.func = func
         self.norm_type = norm_type
         self.methods = methods
-        self.combined_type = combined_type
+        self.combined_type = combined_type # types of output combination
+        self.norm_pos = norm_pos # position to place data norm
 
         self.base_weight = torch.nn.Parameter(torch.Tensor(self.output_dim, self.input_dim))
         torch.nn.init.kaiming_uniform_(self.base_weight, a=math.sqrt(5))
@@ -71,13 +72,16 @@ class PRKANLayer(nn.Module):
         )
         self.register_buffer("bs_grid", bs_grid)
 
-        # Use a conv layer
+        # Use a conv1d layer
         self.conv1d_1 = nn.Conv1d(in_channels=feature_dim, out_channels=1, kernel_size=1, stride=1)
         
-        # Use conv + maxpool layers, then linear
+        # Use conv1d + maxpool layers, then linear transformation
         self.conv1d_2 = nn.Conv1d(in_channels=feature_dim, out_channels=feature_dim, kernel_size=1, stride=1) 
         self.pool_2 = nn.MaxPool1d(kernel_size=feature_dim, stride=feature_dim)
         self.linear = nn.Linear(self.input_dim, self.output_dim)
+        
+        # Use conv2d
+        self.conv2d = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(1, feature_dim), stride=(1, 1))
         
         # Use attention linear
         self.attention = nn.Linear(feature_dim, 1)
@@ -128,6 +132,8 @@ class PRKANLayer(nn.Module):
         """
         if (self.base_activation == 'softplus'):
             return F.softplus(x)
+        if (self.base_activation == 'sigmoid'):
+            return F.sigmoid(x)
         elif(self.base_activation == 'silu'):
             return F.silu(x)
         elif(self.base_activation == 'relu'):
@@ -147,14 +153,46 @@ class PRKANLayer(nn.Module):
         x = x.view(x.size(0), -1)
         x = F.linear(self.activation(x), self.spline_weight)
         return x
-        
     
-    def use_conv1d_1(self, x):
+    
+    def use_conv2d(self, x):
         
-        if (self.norm_type == 'layer'):
-            x = self.layer_norm(x)       
-        elif (self.norm_type == 'batch'):
-            x = self.batch_norm(x)
+        if (self.norm_pos == 1):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+        
+        if (self.func == 'rbf'):
+            x = self.rbf(x) 
+        elif (self.func == 'bs'): 
+            x = self.b_splines(x)
+        else:
+            raise Exception('The function "' + self.func + '" does not support!')
+            
+        x = x.unsqueeze(1)
+        x = self.conv2d(x)
+        x = x.squeeze(-1).squeeze(1)
+        
+        if (self.norm_pos == 2):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+                
+        x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
+        
+        return x
+        
+    def use_conv1d_1(self, x):
+        """
+            only use convolutional layers
+        """
+        if (self.norm_pos == 1):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -166,16 +204,27 @@ class PRKANLayer(nn.Module):
         x = x.permute(0, 2, 1) 
         x = self.conv1d_1(x) 
         x = x.squeeze(1)  
+        
+        if (self.norm_pos == 2):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+                
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         
         return x
     
     def use_conv1d_2(self, x):
+        """
+            only use convolutional + pooling layers
+        """
         
-        if (self.norm_type == 'layer'):
-            x = self.layer_norm(x)       
-        elif (self.norm_type == 'batch'):
-            x = self.batch_norm(x)
+        if (self.norm_pos == 1):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -186,16 +235,29 @@ class PRKANLayer(nn.Module):
 
         x = x.permute(0, 2, 1)  
         x = self.conv1d_2(x)  
-        #print(x.shape)
+
         x = self.pool_2(x) 
-        x = x.permute(0, 2, 1)  
+        #x = x.permute(0, 2, 1)  
         x = x.reshape(x.size(0), -1)
+        
+        if (self.norm_pos == 2):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+       
         x = self.linear(x)
 
         return x
         
     def use_dim_sum(self, x):
         
+        if (self.norm_pos == 1):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+            
         if (self.func == 'rbf'):
             x = self.rbf(x) 
         elif (self.func == 'bs'): 
@@ -205,20 +267,22 @@ class PRKANLayer(nn.Module):
             
         x = torch.sum(x, dim=2) 
         
-        if (self.norm_type == 'layer'):
-            x = self.layer_norm(x)       
-        elif (self.norm_type == 'batch'):
-            x = self.batch_norm(x)
+        if (self.norm_pos == 2):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
             
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         return x
     
     def use_feature_weight(self, x):
         
-        if (self.norm_type == 'layer'):
-            x = self.layer_norm(x)       
-        elif (self.norm_type == 'batch'):
-            x = self.batch_norm(x)
+        if (self.norm_pos == 1):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -229,13 +293,26 @@ class PRKANLayer(nn.Module):
             
         x = torch.matmul(x, self.feature_weight)
         x = x.view(x.size(0), -1)
+        
+        if (self.norm_pos == 2):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+                
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         
         return x
     
     
     def use_attention(self, x):
-
+        
+        if (self.norm_pos == 1):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
+                
         if (self.func == 'rbf'):
             x = self.rbf(x) 
         elif (self.func == 'bs'): 
@@ -247,10 +324,11 @@ class PRKANLayer(nn.Module):
         x = x * attn_weights
         x = x.sum(dim=-1) 
         
-        if (self.norm_type == 'layer'):
-            x = self.layer_norm(x)       
-        elif (self.norm_type == 'batch'):
-            x = self.batch_norm(x)
+        if (self.norm_pos == 2):
+            if (self.norm_type == 'layer'):
+                x = self.layer_norm(x)       
+            elif (self.norm_type == 'batch'):
+                x = self.batch_norm(x)
             
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         
@@ -275,11 +353,13 @@ class PRKANLayer(nn.Module):
             temp = x.clone()
             if (method == 'base'):
                 temp = self.use_base(x)
-            elif (method == 'conv1d_1'): # convolution
+            elif (method == 'conv1d_1'): # 1d convolution
                 temp = self.use_conv1d_1(x)
-            elif (method == 'conv1d_2'): # convolution
+            elif (method == 'conv1d_2'): # 1d convolution + pooling
                 temp = self.use_conv1d_2(x)
-            elif (method == 'attention'): # convolution
+            elif (method == 'conv2d'): # 2d convolution
+                temp = self.use_conv2d(x)
+            elif (method == 'attention'): # attention
                 temp = self.use_attention(x)
             elif (method == 'fw'): # feature weight
                 temp = self.use_feature_weight(x)
@@ -319,14 +399,15 @@ class PRKAN(torch.nn.Module):
         norm_type = 'layer', 
         base_activation='silu',
         methods = [],
-        combined_type = 'sum'
+        combined_type = 'sum',
+        norm_pos = 1, # postion to place data norm
     ):
         super(PRKAN, self).__init__()
         self.grid_size = grid_size
         self.spline_order = spline_order
         self.layers = torch.nn.ModuleList()
         #self.drop = torch.nn.Dropout(p=0.1) # dropout
-
+        
         for input_dim, output_dim in zip(layers_hidden, layers_hidden[1:]):
             self.layers.append(
                 PRKANLayer(
@@ -340,7 +421,8 @@ class PRKAN(torch.nn.Module):
                     norm_type = norm_type, 
                     base_activation=base_activation,
                     methods = methods,
-                    combined_type = combined_type
+                    combined_type = combined_type,
+                    norm_pos = norm_pos
                 )
             )
     
