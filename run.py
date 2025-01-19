@@ -410,9 +410,9 @@ if __name__ == "__main__":
     
     # use for PRKAN
     parser.add_argument('--func', type=str, default='rbf')
-    parser.add_argument('--methods', type=str, default='conv')
-    parser.add_argument('--norm_type', type=str, default='batch')
-    parser.add_argument('--base_activation', type=str, default='selu')
+    parser.add_argument('--methods', type=str, default='attention')
+    parser.add_argument('--norm_type', type=str, default='layer')
+    parser.add_argument('--base_activation', type=str, default='silu')
     parser.add_argument('--norm_pos', type=int, default=1)
 
     args = parser.parse_args()
