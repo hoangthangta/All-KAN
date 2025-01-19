@@ -57,11 +57,11 @@ You can open a pull to add your KANs in this section.
 * *func_list*: the name of functions used in FC-KAN (default='dog,rbf'). Other functions are *bs* and *base*, and functions in SKAN (*shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *cos*). 
 * *combined_type*: the type of data combination used in the output (default='quadratic', others are *sum*, *product*, *sum_product*, *concat*, *max*, *min*, *mean*).
 * *basis_function*: used in SKAN (default='sin', others are *shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *cos*).
-* *func*: used in PRKAN (default='rbf', other is *layer*)
-* *methods*: used in PRKAN (default='attention', other are *conv1d_1* = convolution, *conv1d_2* = convolution + pooling, *attention*, *fw* = feature weight vector, *ds* = dim-sum)
-* *norm_type*: used in PRKAN (default='layer', other is *batch*)
-* *base_activation*: used in PRKAN (default='silu', other are *selu*, *gelu*, *elu*, *silu*, *relu*, *softplus*, *sigmoid*, *leaky_relu*)
-* *norm_pos*: used in PRKAN (default=1, other is *2*) 
+* *func*: the basis function, used in PRKAN (default='rbf', other is *layer*)
+* *methods*: reduction methods, used in PRKAN (default='attention', other are *conv1d_1* = convolution, *conv1d_2* = convolution + pooling, *attention*, *fw* = feature weight vector, *ds* = dim-sum)
+* *norm_type*:  data normalization type, used in PRKAN (default='layer', other is *batch*)
+* *base_activation*: base activation, used in PRKAN (default='silu', other are *selu*, *gelu*, *elu*, *silu*, *relu*, *softplus*, *sigmoid*, *leaky_relu*)
+* *norm_pos*: data normalization position, used in PRKAN (default=1, other is *2*) 
 
 ## Commands
 ### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
