@@ -18,8 +18,8 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 # Existing KANs
 ## My KANs
 These are KANs that I have developed:
-- BSRBF-KAN: https://github.com/hoangthangta/BSRBF_KAN
-- FC-KAN: https://github.com/hoangthangta/FC_KAN
+- BSRBF-KAN: Code is in this repo, other place is: https://github.com/hoangthangta/BSRBF_KAN.
+- FC-KAN: Code is in this repo, other place is: https://github.com/hoangthangta/FC_KAN.
 - PRKAN: Code is in this repo.
 
 ## Other KANs
