@@ -104,6 +104,7 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 ### SKAN
 <details>
 <summary><b>Click here for code!</b></summary>
+  
 ```
 python run.py --mode "train" --model_name "skan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "arctan"
 ```
