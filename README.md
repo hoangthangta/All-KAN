@@ -113,30 +113,18 @@ python run.py --mode "train" --model_name "skan" --epochs 35 --batch_size 64 --n
 ### PRKAN
 <details>
 <summary><b>Click here for code!</b></summary>
-python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_2" --norm_type "layer" --norm_pos 2;
-sleep 15s;
+```
+python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 1;
+```
+
+```
+python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_2" --norm_type "layer" --norm_pos 1;
+```
+
+```
 python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "ds" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "fw" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --base_activation "silu" --methods "base" --norm_type "layer";
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_2" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "ds" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "fw" --norm_type "layer" --norm_pos 2;
-sleep 15s;
-python run.py --mode "train" --model_name "prkan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full_0" --n_part 0 --base_activation "silu" --methods "base" --norm_type "layer";
-sleep 15s;
+```
+
 </details>
 
 # How to cite?
