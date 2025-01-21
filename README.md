@@ -138,19 +138,19 @@ You can cite these papers.
 ```
 
 ```
-@article{ta2024bsrbf,
-  title={BSRBF-KAN: A combination of B-splines and Radial Basis Functions in Kolmogorov-Arnold Networks},
-  author={Ta, Hoang-Thang},
-  journal={arXiv preprint arXiv:2406.11173},
+@article{ta2024fc,
+  title={FC-KAN: Function Combinations in Kolmogorov-Arnold Networks},
+  author={Ta, Hoang-Thang and Thai, Duy-Quy and Rahman, Abu Bakar Siddiqur and Sidorov, Grigori and Gelbukh, Alexander},
+  journal={arXiv preprint arXiv:2409.01763},
   year={2024}
 }
 ```
 
 ```
-@article{ta2024fc,
-  title={Fc-kan: Function combinations in kolmogorov-arnold networks},
-  author={Ta, Hoang-Thang and Thai, Duy-Quy and Rahman, Abu Bakar Siddiqur and Sidorov, Grigori and Gelbukh, Alexander},
-  journal={arXiv preprint arXiv:2409.01763},
+@article{ta2024bsrbf,
+  title={BSRBF-KAN: A combination of B-splines and Radial Basis Functions in Kolmogorov-Arnold Networks},
+  author={Ta, Hoang-Thang},
+  journal={arXiv preprint arXiv:2406.11173},
   year={2024}
 }
 ```
