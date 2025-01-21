@@ -41,15 +41,15 @@ You can open a pull to add your KANs in this section.
 ## Parameters
 * *mode*: working mode ("train").
 * *ds_name*: dataset name ("mnist" or "fashion_mnist").
-* *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*).
+* *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*, etc.).
 * *epochs*: the number of epochs.
 * *batch_size*: the training batch size (default: 64).
 * *n_input*: The number of input neurons (default: 28^2 = 784).
 * *n_hidden*: The number of hidden neurons. We use only 1 hidden layer. You can modify the code (**run.py**) for more layers.
 * *n_output*: The number of output neurons (classes). For MNIST and Fashion-MNIST, there are 10 classes.
-* *grid_size*: The size of the grid (default: 5). Use with bsrbf_kan and efficient_kan.
-* *spline_order*: The order of spline (default: 3). Use with bsrbf_kan and efficient_kan.
-* *num_grids*: The number of grids, equals grid_size + spline_order (default: 8). Use with fast_kan and faster_kan.
+* *grid_size*: The size of the grid (default: 5). Favor using bsrbf_kan, efficient_kan, and other variants that leverage B-splines or similar functions.
+* *spline_order*: The order of spline (default: 3). Favor using bsrbf_kan, efficient_kan and other KAN variants that leverage B-splines or similar functions.
+* *num_grids*: The number of grids, equals grid_size + spline_order (default: 8). Favor using fast_kan and faster_kan models based on Radial Basis Functions (RBFs).
 * *device*: use "cuda" or "cpu" (default: "cuda").
 * *n_examples*: the number of examples in the training set used for training (default: 0, mean use all training data)
 * *note*: A note saved in the model name file.
