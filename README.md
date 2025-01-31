@@ -123,6 +123,9 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 
 </details>
 
+# Acknowledgement
+Also, give me a star if you like this repo. Thanks!
+
 # How to cite?
 
 You can cite these papers.
