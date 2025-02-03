@@ -40,7 +40,7 @@ You can open a pull to add your KANs in this section.
 * tqdm==4.66.4
 
 ## Parameters
-* *mode*: working mode ("train").
+* *mode*: working mode ("train" or "predict_set").
 * *ds_name*: dataset name ("mnist" or "fashion_mnist").
 * *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*, etc.).
 * *epochs*: the number of epochs.
