@@ -125,6 +125,22 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 
 </details>
 
+### ReLUKAN
+ReLUKAN is better with **grid_size=3** and **spline_order=3**.
+<details>
+<summary><b>Click here for code!</b></summary>
+
+```python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer";```
+
+```python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "batch";```
+
+```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "layer";```
+
+```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "batch";```
+
+</details>
+
+
 # Acknowledgement
 Also, give me a star if you like this repo. Thanks!
 
