@@ -10,23 +10,46 @@ import torchvision.transforms as transforms
 from ptflops import get_model_complexity_info
 import copy
 
+import scipy.io
 import requests
 
 #import numpy as np
 from file_io import *
-from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN
+from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN, PRReLUKAN
 
 from pathlib import Path
 from PIL import Image
 from prettytable import PrettyTable
 from sklearn.metrics import precision_score, recall_score, f1_score
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 
-def remove_unused_params(model):
+# MNIST: Mean=0.1307, Std=0.3081
+# Fashion-MNIST: Mean=0.2860, Std=0.3530
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+    ])
     
+# CIFAR10
+transform_cifar = transforms.Compose([
+    transforms.ToTensor(),  
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  
+        ])
+
+# Omniglot
+transform_omniglot = transforms.Compose([
+    transforms.Resize((28, 28)),  # Resize to 28x28
+    transforms.Grayscale(num_output_channels=1),  # Ensure images are grayscale
+    transforms.ToTensor()  # Convert images to PyTorch tensors
+    ])
+
+def remove_unused_params(model):
+    """
+        Remove unused parameters from the trained model
+    """
     unused_params, _ = count_unused_params(model)
     for name in unused_params:
         #attr_name = name.split('.')[0]  # Get the top-level attribute name (e.g., 'unused')
@@ -36,7 +59,9 @@ def remove_unused_params(model):
     return model
 
 def count_unused_params(model):
-    # Detect and count unused parameters
+    """
+        Detect and count unused parameters
+    """
     unused_params = []
     unused_param_count = 0
 
@@ -47,7 +72,18 @@ def count_unused_params(model):
     
     return unused_params, unused_param_count
 
+# use for CalTech 101 Silhouettes  
+def convert_to_tensors(dataset):
+    images, labels = [], []
+    for image, label in tfds.as_numpy(dataset):
+        images.append(image)
+        labels.append(label)
+    return torch.tensor(images, dtype=torch.float32).unsqueeze(1), torch.tensor(labels)
+    
 def count_params(model):
+    """
+        Count the model's parameters
+    """
     table = PrettyTable(["Modules", "Parameters"])
     total_params = 0
     for name, parameter in model.named_parameters():
@@ -73,32 +109,14 @@ def count_params(model):
     return total_params
     
 def run(args):
-    # model_name = 'bsrbf_kan', batch_size = 64, n_input = 28*28, epochs = 10, n_output = 10, n_hidden = 64, 
-    # grid_size = 5, num_grids = 8, spline_order = 3, ds_name = 'mnist', n_examples = -1, note = 'full', n_part = 0.1, func_list = [],
-    # combined_type = 'quadratic'
     
     start = time.time()
-    
-    # Fashion-MNIST
-    # Mean: 0.2860, Standard Deviation: 0.3530
-
-    # MNIST
-    # Mean: 0.1307, Standard Deviation: 0.3081
-    
-    # Sign Language MNIST
-    # Mean: 0.6257, Standard Deviation: 0.1579
-    
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
-        ])
     
     trainset, valset = [], []
     if (args.ds_name == 'mnist'):
         trainset = torchvision.datasets.MNIST(
             root="./data", train=True, download=True, transform=transform
         )
-
         valset = torchvision.datasets.MNIST(
             root="./data", train=False, download=True, transform=transform
         )
@@ -110,10 +128,60 @@ def run(args):
         valset = torchvision.datasets.FashionMNIST(
             root="./data", train=False, download=True, transform=transform
         )
-    elif(args.ds_name == 'sl_mnist'):
-        from ds_model import SignLanguageMNISTDataset
-        trainset = SignLanguageMNISTDataset(csv_file='data/SignMNIST/sign_mnist_train.csv', transform=transform)
-        valset = SignLanguageMNISTDataset(csv_file='data/SignMNIST/sign_mnist_test.csv', transform=transform)
+    elif(args.ds_name == 'cal_si'): # "caltech101_silhouettes
+        # Load the .mat file
+        data = scipy.io.loadmat("data/caltech101_silhouettes/caltech101_silhouettes_28_split1.mat")
+
+        # Extract data and labels
+        train_data = data['train_data']
+        train_labels = data['train_labels'].flatten()
+
+        val_data = data['val_data']
+        val_labels = data['val_labels'].flatten()
+
+        test_data = data['test_data']
+        test_labels = data['test_labels'].flatten()
+
+        # Convert to PyTorch tensors
+        trainset = TensorDataset(
+            torch.tensor(train_data, dtype=torch.float32).reshape(-1, 1, 28, 28),  
+            torch.tensor(train_labels, dtype=torch.long)  
+        )
+        valset = TensorDataset(
+            torch.tensor(val_data, dtype=torch.float32).reshape(-1, 1, 28, 28),
+            torch.tensor(val_labels, dtype=torch.long)
+        )
+        
+        testset = TensorDataset(
+            torch.tensor(test_data, dtype=torch.float32).reshape(-1, 1, 28, 28),
+            torch.tensor(test_labels, dtype=torch.long)
+        )
+    
+    # add other datasets here
+    '''elif(args.ds_name == 'omniglot'):
+        trainset = torchvision.datasets.Omniglot(
+            root="./data", background=True, download=True, transform=transform_omniglot
+        )
+
+        valset = torchvision.datasets.Omniglot(
+            root="./data", background=False, download=True, transform=transform_omniglot
+        )
+        
+        #print(len(trainset._characters)) # 964
+        #print(len(valset._characters)) # 659
+        
+        all_classes = set(trainset._characters + valset._characters)
+        n_output = len(all_classes)'''
+        
+    '''elif(args.ds_name == 'cifar10'):
+        trainset = torchvision.datasets.CIFAR10(
+            root='./data', train=True, download=True,  transform=transform_cifar
+        )
+
+        valset = torchvision.datasets.CIFAR10(
+            root="./data", train=False, download=True, transform=transform_cifar
+        )'''
+    
 
     if (args.n_examples > 0):
         if (args.n_examples/args.batch_size > 1):
@@ -133,6 +201,11 @@ def run(args):
     
     trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=False)
     valloader = DataLoader(valset, batch_size=args.batch_size, shuffle=False)
+    
+    # If having a test set
+    if (args.ds_name == 'cal_si'): # or other datasets
+        testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
+        print('testset: ', len(testset))
 
     # Create model storage
     output_path = 'output/' + args.ds_name + '/' + args.model_name + '/'
@@ -153,6 +226,13 @@ def run(args):
         
         saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.pth'
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.json'
+    
+    elif(args.model_name == 'pr_relu_kan'):
+        if (len(args.methods) == 1): args.combined_type = 'none'
+        
+        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.pth'
+        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.json'
+        
     else:
         saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.note + '.pth'
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.note + '.json'
@@ -180,14 +260,14 @@ def run(args):
     elif(args.model_name == 'skan'):
         model = SKAN([args.n_input, args.n_hidden, args.n_output], basis_function = args.basis_function) # lshifted_softplus, larctan 
     elif(args.model_name == 'relu_kan'):
-        model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation) 
-        
+        model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type) 
+    elif(args.model_name == 'pr_relu_kan'):
+        model = PRReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type)     
     else:
+        # add other KANs here
         raise ValueError("Unsupported network type.")
     model.to(device)
-    
-    
-    
+
     # Define optimizer
     lr = 1e-3
     wc = 1e-4
@@ -203,12 +283,17 @@ def run(args):
     y_true = [labels.tolist() for images, labels in valloader]
     y_true = sum(y_true, [])
     
+    if(args.ds_name == 'cal_si'):
+        y_true_test = [labels.tolist() for images, labels in testloader]
+        y_true_test = sum(y_true_test, [])
+    
     for epoch in range(1, args.epochs + 1):
         # Train
         model.train()
         train_accuracy, train_loss = 0, 0
         with tqdm(trainloader) as pbar:
-            for i, (images, labels) in enumerate(pbar):
+            for i, (images , labels) in enumerate(pbar):
+
                 images = images.view(-1, args.n_input).to(device)
                 optimizer.zero_grad()
                 output = model(images.to(device))
@@ -260,7 +345,37 @@ def run(args):
         print(f"Epoch [{epoch}/{args.epochs}], Train Loss: {train_loss:.6f}, Train Accuracy: {train_accuracy:.6f}")
         print(f"Epoch [{epoch}/{args.epochs}], Val Loss: {val_loss:.6f}, Val Accuracy: {val_accuracy:.6f}, F1: {f1:.6f}, Precision: {pre:.6f}, Recall: {recall:.6f}")
         
-        write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'f1_macro':f1, 'pre_macro':pre, 're_macro':recall, 'best_epoch':best_epoch, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
+        test_loss, test_accuracy = 0, 0
+        if (args.ds_name == 'cal_si'):
+            
+            y_pred_test = []
+            with torch.no_grad():
+                for images, labels in testloader:
+                    images = images.view(-1, args.n_input).to(device)
+                    output = model(images.to(device))
+                    test_loss += criterion(output, labels.to(device)).item()
+                    y_pred_test += output.argmax(dim=1).tolist()
+                    test_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
+           
+            # calculate F1, Precision and Recall
+            #f1_test = f1_score(y_true_test, y_pred_test, average='micro')
+            #pre_test = precision_score(y_true_test, y_pred_test, average='micro')
+            #recall_test = recall_score(y_true_test, y_pred_test, average='micro')
+            
+            f1_test = f1_score(y_true_test, y_pred_test, average='macro')
+            pre_test = precision_score(y_true_test, y_pred_test, average='macro')
+            recall_test = recall_score(y_true_test, y_pred_test, average='macro')
+
+            test_loss /= len(testloader)
+            test_accuracy /= len(testloader)
+   
+            
+            print(f"Epoch [{epoch}/{args.epochs}], Test Loss: {test_loss:.6f}, Test Accuracy: {test_accuracy:.6f}, F1: {f1_test:.6f}, Precision: {pre_test:.6f}, Recall: {recall_test:.6f}")
+
+        if test_accuracy != 0: # there has a test set
+            write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'test_accuracy':test_accuracy, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'test_f1_macro':f1_test, 'test_pre_macro':pre_test, 'test_re_macro':recall_test,  'val_f1_macro':f1, 'val_pre_macro':pre, 'val_re_macro':recall, 'best_epoch':best_epoch, 'test_loss': test_loss, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
+        else:
+            write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'f1_macro':f1, 'pre_macro':pre, 're_macro':recall, 'best_epoch':best_epoch, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
     
     end = time.time()
     print(f"Training time (s): {end-start}")
@@ -279,31 +394,39 @@ def run(args):
     
 
 def predict_set(args):
+    """
+        Predict a given dataset using a trained model.
+    """
     
     # Load the model
     model = torch.load(args.model_path)
     model.eval()  
     
-    # Define the image transformation
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,)) 
-    ])
-    
-    # Load the test set
+    # Load the val/test set
     if args.ds_name == 'mnist':
         dataset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
     elif args.ds_name == 'fashion_mnist':
         dataset = torchvision.datasets.FashionMNIST(root='./data', train=False, download=True, transform=transform)
+        
+    elif(args.ds_name == 'cal_si'): # "caltech101_silhouettes
+        data = scipy.io.loadmat("data/caltech101_silhouettes/caltech101_silhouettes_28_split1.mat")
+        test_data = data['test_data']
+        test_labels = data['test_labels'].flatten()
+        dataset = TensorDataset(
+            torch.tensor(test_data, dtype=torch.float32).reshape(-1, 1, 28, 28),
+            torch.tensor(test_labels, dtype=torch.long)
+        )
     else:
-        raise ValueError("Unsupported dataset name. Use 'mnist' or 'fashion_mnist'.")
+        # Customize the code to load any dataset you want to test
+        raise ValueError("Unsupported dataset name.")
+    
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
     
     # Define loss
     criterion = nn.CrossEntropyLoss()
 
     # Initialize validation loss and accuracy
-    val_loss, val_accuracy = 0, 0   
+    set_loss, set_accuracy = 0, 0   
     
     # List to store predictions
     y_pred = []
@@ -317,22 +440,22 @@ def predict_set(args):
             batch_size, _, height, width = images.shape # extract all dimensions
             images = images.view(-1, height*width).to(device)
             output = model(images.to(device))
-            val_loss += criterion(output, labels.to(device)).item()
+            set_loss += criterion(output, labels.to(device)).item()
             y_pred += output.argmax(dim=1).tolist()
-            val_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
+            set_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
     
     # Calculate F1
     f1 = f1_score(y_true, y_pred, average='macro')
     pre = precision_score(y_true, y_pred, average='macro')
     recall = recall_score(y_true, y_pred, average='macro')
     
-    # Calculate val loss and val accuracy
-    val_loss /= len(loader)
-    val_accuracy /= len(loader)
+    # Calculate set loss and set accuracy
+    set_loss /= len(loader)
+    set_accuracy /= len(loader)
     
     result_dict = {}
-    result_dict['val_loss'] = round(val_loss, 6)
-    result_dict['val_accuracy'] = round(val_accuracy, 6)
+    result_dict['set_loss'] = round(set_loss, 6)
+    result_dict['set_accuracy'] = round(set_accuracy, 6)
     result_dict['f1'] = round(f1, 6)
     result_dict['pre'] = round(pre, 6)
     result_dict['recall'] = round(recall, 6)
@@ -348,19 +471,27 @@ def predict_set(args):
     false_dict = dict(sorted(false_dict.items(), key=lambda x: x[1], reverse = True))
     
     # Print results
-    print(f"Val Loss: {val_loss:.6f}, Val Accuracy: {val_accuracy:.6f}, F1: {f1:.6f}, Precision: {pre:.6f}, Recall: {recall:.6f}")
+    print(f"Set Loss: {set_loss:.6f}, Set Accuracy: {set_accuracy:.6f}, F1: {f1:.6f}, Precision: {pre:.6f}, Recall: {recall:.6f}")
     print(f"False inference dict: {false_dict}")
     
     return result_dict, false_dict
 
-'''def compare(base_output = 'output//bsrbf_paper//', dataset = 'mnist'):
+# this one is only for my own works
+'''def compare(args, base_output = 'papers//FC-KAN//fc_kan_paper//'):
     
-    models = ['efficient_kan', 'bsrbf_kan', 'fast_kan',  'faster_kan', 'gottlieb_kan', 'mlp']
+    # base_output = 'output//bsrbf_paper//'
+
+    models = ['efficient_kan', 'fast_kan', 'bsrbf_kan',  'faster_kan',  'mlp', 'mfc_kan']
     
     dict_list = []
     for m in models:
-        model_path = base_output + dataset + '//' + m + '//' + m + '__' + dataset + '__full_0.pth'
-        false_dict = predict_set(m, model_path, dataset, batch_size = 64)
+        if (m == 'mfc_kan'):
+            model_path = base_output + args.ds_name + '//' + m + '//' + m + '__' + args.ds_name + '__dog-bs__quadratic__full_1.pth'
+        else:
+            model_path = base_output + args.ds_name + '//' + m + '//' + m + '__' + args.ds_name + '__full_1.pth'
+        #false_dict = predict_set(m, model_path, dataset, batch_size = 64)
+        args.model_path = model_path
+        false_dict = predict_set(args)
         dict_list.append({m:false_dict})
     print(dict_list)'''
    
@@ -371,7 +502,7 @@ def main(args):
     func_list = [x.strip() for x in func_list]
     args.func_list = func_list
     
-    # for PRKAN
+    # for PRKAN + PRReLUKAN
     methods = args.methods.split(',')
     methods = [x.strip() for x in methods]
     args.methods = methods
@@ -381,12 +512,12 @@ def main(args):
     elif(args.mode == 'predict_set'):
         predict_set(args)
     '''else:
-        compare(dataset = args.ds_name)'''
+        compare(args)'''
     
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Training Parameters')
-    parser.add_argument('--mode', type=str, default='train') # or test
+    parser.add_argument('--mode', type=str, default='train') # or predict_set
     parser.add_argument('--model_name', type=str, default='efficient_kan')
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=64)
@@ -411,7 +542,7 @@ if __name__ == "__main__":
     # use for PRKAN
     parser.add_argument('--func', type=str, default='rbf')
     parser.add_argument('--methods', type=str, default='attention')
-    parser.add_argument('--norm_type', type=str, default='layer')
+    parser.add_argument('--norm_type', type=str, default='layer') 
     parser.add_argument('--base_activation', type=str, default='silu')
     parser.add_argument('--norm_pos', type=int, default=1)
 
@@ -424,11 +555,22 @@ if __name__ == "__main__":
     
     main(args)
 
+
+# Some examples
+
 #python run.py --mode "train" --model_name "fc_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --func_list "dog,sin" --combined_type "sum"
 
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 7 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 25 --grid_size 5 --spline_order 3 --ds_name "sl_mnist"
 
-#python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "gelu"
+#python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer"
+
+#python run.py --mode "train" --model_name "pr_relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "gelu" --methods "local_attn"
+
+#python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" 
+
+#python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --ds_name "cal_si" --note "full"
+
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 5 --spline_order 3 --ds_name "cal_si"
 
 #python run.py --mode "train" --model_name "skan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "sin"
 
@@ -438,9 +580,9 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "gottlieb_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "mnist"
 
-#python run.py --mode "train" --model_name "mlp" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_test"
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --n_input 3072 --n_hidden 64 --n_output 10 --ds_name "cifar10" --note "full"
 
-# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "" --base_activation "silu" --methods "conv2d" --combined_type "product"
+# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --n_input 3072 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "" --base_activation "silu" --methods "conv2d" --combined_type "product"
 
 #python run.py --mode "predict_set" --model_name "bsrbf_kan" --model_path='papers//BSRBF-KAN//bsrbf_paper//mnist//bsrbf_kan//bsrbf_kan__mnist__full_0.pth' --ds_name "mnist" --batch_size 64
 
