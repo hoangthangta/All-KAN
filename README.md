@@ -141,9 +141,6 @@ ReLUKAN is better with **grid_size=3** and **spline_order=3**.
 </details>
 
 # Acknowledgement
-> Science is not only a disciple of reason but, also, one of romance and passion."
-— Stephen Hawking
-
 Thank you all for your contributions and suggestions to this repo. If you like it, please consider giving it a star. Thanks!
 
 # How to cite?
