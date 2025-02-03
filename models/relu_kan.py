@@ -195,7 +195,7 @@ class PRReLUKANLayer(nn.Module):
     
     def multihead_attn(self, x):
         """
-            Multi-head Attention
+            Multi-head Attention, slow
         """
         # x: (B, D, G + k)
 
@@ -219,8 +219,7 @@ class PRReLUKANLayer(nn.Module):
     def self_attn(self, x):
         
         """
-            Self Attention (Scaled Dot-Product Attention)
-            Take long time
+            Self Attention (Scaled Dot-Product Attention), slow
         """
         B, D, G_plus_k = x.size()
         
