@@ -29,7 +29,7 @@ You can open a pull to add your KANs in this section.
 - FastKAN: https://github.com/ZiyaoLi/fast-kan
 - FasterKAN: https://github.com/AthanasiosDelis/faster-kan
 - Wav-KAN: https://github.com/zavareh1/Wav-KAN
-- ReLUKAN: https://github.com/quiqi/relu_kan (updating)
+- ReLUKAN: https://github.com/quiqi/relu_kan
 - SKAN: https://github.com/chikkkit/LSS-SKAN, https://github.com/chikkkit/LArctan-SKAN
 - More KANs: https://github.com/mintisan/awesome-kan
 
