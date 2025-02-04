@@ -1,5 +1,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-PRKAN-<blue>)
 
+# News
+- Updated ReLUKAN
 
 # All-KAN: All Kolmogorov-Arnold Networks We Know
 This repository gathers all known Kolmogorov-Arnold Networks (including those I developed) from various sources. These networks are implemented for **image classification on some simple image classification datasets (MNIST, Fashion-MNIST, etc)**. I hope this collection inspires you and the broader research community to advance the development of even better KANs in the future.
