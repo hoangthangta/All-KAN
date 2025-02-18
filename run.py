@@ -494,7 +494,7 @@ def main(args):
     func_list = [x.strip() for x in func_list]
     args.func_list = func_list
     
-    # for PRKAN + PRReLUKAN
+    # for PRKAN
     methods = args.methods.split(',')
     methods = [x.strip() for x in methods]
     args.methods = methods
