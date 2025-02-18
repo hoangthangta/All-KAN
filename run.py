@@ -254,9 +254,7 @@ def run(args):
     elif(args.model_name == 'skan'):
         model = SKAN([args.n_input, args.n_hidden, args.n_output], basis_function = args.basis_function) # lshifted_softplus, larctan 
     elif(args.model_name == 'relu_kan'):
-        model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type) 
-    elif(args.model_name == 'pr_relu_kan'):
-        model = PRReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type)     
+        model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type)    
     else:
         # add other KANs here
         raise ValueError("Unsupported network type.")
