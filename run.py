@@ -15,7 +15,7 @@ import requests
 
 #import numpy as np
 from file_io import *
-from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN, PRReLUKAN
+from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN
 
 from pathlib import Path
 from PIL import Image
@@ -226,13 +226,7 @@ def run(args):
         
         saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.pth'
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.json'
-    
-    elif(args.model_name == 'pr_relu_kan'):
-        if (len(args.methods) == 1): args.combined_type = 'none'
-        
-        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.pth'
-        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.json'
-        
+
     else:
         saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.note + '.pth'
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.note + '.json'
