@@ -90,7 +90,9 @@ class FC_KANLayer(nn.Module):
             Returns:
                 torch.Tensor: B-spline bases tensor of shape (batch_size, in_features, grid_size + spline_order).
         """
+        
         assert x.dim() == 2 and x.size(1) == self.input_dim
+        
 
         grid: torch.Tensor = (
             self.grid
@@ -191,6 +193,11 @@ class FC_KANLayer(nn.Module):
         for i, f in zip(range(X.shape[0]), self.func_list):
             
             x = X[i, :, :].squeeze(0)
+            
+            # avoid FLOP error
+            if (x.dim() == 1):
+                x = x.unsqueeze(0).expand(1, -1) 
+                
             if (f == 'rbf'):
                 x = self.rbf(x).view(x.size(0), -1)
                 x = F.linear(x, self.spline_weight)
