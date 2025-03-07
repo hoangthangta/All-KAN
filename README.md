@@ -143,7 +143,7 @@ ReLUKAN is better with **grid_size=3** and **spline_order=3**.
 </details>
 
 ### AF-KAN
-ReLUKAN is better with **grid_size=3** and **spline_order=3**.
+AF-KAN is better with **grid_size=3** and **spline_order=3**.
 <details>
 <summary><b>Click here for code!</b></summary>
 
