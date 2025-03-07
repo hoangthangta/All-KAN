@@ -63,10 +63,12 @@ You can open a pull to add your KANs in this section.
 * *combined_type*: the type of data combination used in the output (default='quadratic', others are *sum*, *product*, *sum_product*, *concat*, *max*, *min*, *mean*).
 * *basis_function*: used in SKAN (default='sin', others are *shifted_softplus*, *arctan*, *relu*, *elu*, *gelup*, *leaky_relu*, *swish*, *softplus*, *sigmoid*, *hard_sigmoid*, *cos*).
 * *func*: the basis function, used in PRKAN (default='rbf', other is *layer*)
-* *methods*: reduction methods, used in PRKAN (default='attention', other are *conv1d_1* = convolution, *conv1d_2* = convolution + pooling, *attention*, *fw* = feature weight vector, *ds* = dim-sum)
-* *norm_type*:  data normalization type, used in PRKAN (default='layer', other is *batch*)
-* *base_activation*: base activation, used in PRKAN (default='silu', other are *selu*, *gelu*, *elu*, *silu*, *relu*, *softplus*, *sigmoid*, *leaky_relu*)
-* *norm_pos*: data normalization position, used in PRKAN (default=1, other is *2*) 
+* *methods*: reduction methods, used in PRKAN (default='attention', other are *conv1d_1* = convolution, *conv1d_2* = convolution + pooling, *attention*, *fw* = feature weight vector, *ds* = dim-sum) or AF-KAN (*global_attn*, *spatial_attn*, *multistep*, and more, check its code.)
+* *norm_type*:  data normalization type, used in PRKAN, AF-KAN, ReLU-KAN (default=*layer*, other is *batch*, *none*)
+* *base_activation*: base activation, used in PRKAN, AF-KAN, ReLU-KAN (default='silu', other are *selu*, *gelu*, *elu*, *silu*, *relu*, *softplus*, *sigmoid*, *leaky_relu*)
+* *norm_pos*: data normalization position, used in PRKAN (default=1, other is *2*)
+* *func*: function types used in AF-KAN (*quad1*, *quad2*, *sum*, *prod*, *sum_prod*, *cubic1*, *cubic2*)
+
 
 ## Commands
 ### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
