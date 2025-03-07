@@ -1,7 +1,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-ReLUKAN-<blue>)
 
 # News
-- Updated ReLUKAN
+- AF-KAN, ReLU-KAN
 
 # All-KAN: All Kolmogorov-Arnold Networks We Know
 This repository gathers all known Kolmogorov-Arnold Networks (including those I developed) from various sources. These networks are implemented for **image classification on some simple image classification datasets (MNIST, Fashion-MNIST, etc)**. I hope this collection inspires you and the broader research community to advance the development of even better KANs in the future.
@@ -139,6 +139,17 @@ ReLUKAN is better with **grid_size=3** and **spline_order=3**.
 ```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "layer";```
 
 ```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "batch";```
+
+</details>
+
+### AF-KAN
+ReLUKAN is better with **grid_size=3** and **spline_order=3**.
+<details>
+<summary><b>Click here for code!</b></summary>
+
+```python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
+
+```python run.py --mode "train" --model_name "af_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
 
 </details>
 
