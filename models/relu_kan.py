@@ -19,18 +19,23 @@ class ReLUKANLayer(nn.Module):
         self.input_size, self.output_size = input_size, output_size
         phase_low = torch.arange(-k, g) / g
         phase_high = phase_low + (k + 1) / g
+
         self.phase_low = nn.Parameter(phase_low[None, :].expand(input_size, -1),
                                       requires_grad=train_ab)
         self.phase_high = nn.Parameter(phase_high[None, :].expand(input_size, -1),
                                          requires_grad=train_ab)
+
         self.equal_size_conv = nn.Conv2d(1, output_size, (g+k, input_size))
         self.base_activation = base_activation
 
         # Data normalization
-        if norm_type == 'layer':
+        if (norm_type == 'layer'):
             self.norm = nn.LayerNorm(input_size)
-        else:
+        elif(norm_type == 'batch'):
             self.norm = nn.BatchNorm1d(input_size)
+        else:
+            self.norm = nn.Identity() 
+            
 
     def activation(self, x):
         """
@@ -55,11 +60,9 @@ class ReLUKANLayer(nn.Module):
         #   - https://github.com/quiqi/relu_kan/issues/1
         #   - https://github.com/quiqi/relu_kan/issues/2
         
-        x = self.norm(x)
-        
-        # Expand dimensions of x to match the shape of self.phase_low
+        x = self.norm(x) 
         x_expanded = x.unsqueeze(2).expand(-1, -1, self.phase_low.size(1))
-       
+        
         # Perform the subtraction with broadcasting
         x1 = self.activation(x_expanded - self.phase_low)
         x2 = self.activation(self.phase_high - x_expanded)
@@ -67,10 +70,7 @@ class ReLUKANLayer(nn.Module):
         # Continue with the rest of the operations
         x = x1 * x2 * self.r
         x = x * x 
-        
-        #x = x.view(x.size(0), -1)
-        #x = F.linear(x, self.base_weight, self.base_weight_bias)
-        
+
         x = x.reshape((len(x), 1, self.g + self.k, self.input_size))
         x = self.equal_size_conv(x)
         #x = x.reshape((len(x), self.output_size, 1))
@@ -94,7 +94,12 @@ class ReLUKAN(nn.Module):
         
         self.rk_layers = []
         for i in range(len(width) - 1):
-            self.rk_layers.append(ReLUKANLayer(width[i], grid, k, width[i+1], norm_type = norm_type, base_activation = base_activation))
+            self.rk_layers.append(ReLUKANLayer(width[i], 
+                                        grid, k, width[i+1], 
+                                        norm_type = norm_type, 
+                                        base_activation = base_activation
+                                        )
+                                    )
             #if len(width) - i > 2:
             #   self.rk_layers.append()
         self.rk_layers = nn.ModuleList(self.rk_layers)
