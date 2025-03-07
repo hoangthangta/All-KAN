@@ -15,7 +15,7 @@ import requests
 
 #import numpy as np
 from file_io import *
-from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN
+from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN, AF_KAN
 
 from pathlib import Path
 from PIL import Image
@@ -157,6 +157,15 @@ def run(args):
             torch.tensor(test_labels, dtype=torch.long)
         )
     
+    elif(args.ds_name == 'cifar10'):
+        trainset = torchvision.datasets.CIFAR10(
+            root='./data', train=True, download=True,  transform=transform_cifar
+        )
+
+        valset = torchvision.datasets.CIFAR10(
+            root="./data", train=False, download=True, transform=transform_cifar
+        )
+        
     # add other datasets here
     '''elif(args.ds_name == 'omniglot'):
         trainset = torchvision.datasets.Omniglot(
@@ -173,16 +182,6 @@ def run(args):
         all_classes = set(trainset._characters + valset._characters)
         n_output = len(all_classes)'''
         
-    '''elif(args.ds_name == 'cifar10'):
-        trainset = torchvision.datasets.CIFAR10(
-            root='./data', train=True, download=True,  transform=transform_cifar
-        )
-
-        valset = torchvision.datasets.CIFAR10(
-            root="./data", train=False, download=True, transform=transform_cifar
-        )'''
-    
-
     if (args.n_examples > 0):
         if (args.n_examples/args.batch_size > 1):
             trainset = torch.utils.data.Subset(trainset, range(args.n_examples))
@@ -221,15 +220,19 @@ def run(args):
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.basis_function + '__' + args.note + '.json'
     elif(args.model_name == 'prkan'):
         # model = PRKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order, num_grids = args.num_grids, func = args.func, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type)
-        
         if (len(args.methods) == 1): args.combined_type = 'none'
         
         saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.pth'
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.json'
-
+    elif(args.model_name == 'af_kan'):
+        if (len(args.methods) == 1): args.combined_type = 'none'
+        
+        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.func + '__' + args.note + '.pth'
+        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.func + '__' + args.note + '.json'
     else:
         saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.note + '.pth'
         saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.note + '.json'
+    
     with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
 
     # Define models
@@ -244,7 +247,7 @@ def run(args):
     elif(args.model_name == 'gottlieb_kan'):
         model = GottliebKAN([args.n_input, args.n_hidden, args.n_output], spline_order = args.spline_order)
     elif(args.model_name == 'mlp'):
-        model = MLP([args.n_input, args.n_hidden, args.n_output])
+        model = MLP([args.n_input, args.n_hidden, args.n_output], base_activation = args.base_activation, norm_type = args.norm_type, use_attn  = args.use_attn)
     elif(args.model_name == 'fc_kan'):
         model = FC_KAN([args.n_input, args.n_hidden, args.n_output], args.func_list, combined_type = args.combined_type, grid_size = args.grid_size, spline_order = args.spline_order)
     elif(args.model_name == 'efficient_kan'):
@@ -254,7 +257,9 @@ def run(args):
     elif(args.model_name == 'skan'):
         model = SKAN([args.n_input, args.n_hidden, args.n_output], basis_function = args.basis_function) # lshifted_softplus, larctan 
     elif(args.model_name == 'relu_kan'):
-        model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type)    
+        model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation) 
+    elif(args.model_name == 'af_kan'):
+        model = AF_KAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type, func = args.func, func_norm = args.func_norm)
     else:
         # add other KANs here
         raise ValueError("Unsupported network type.")
@@ -371,7 +376,7 @@ def run(args):
     
     end = time.time()
     print(f"Training time (s): {end-start}")
-    write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')
+    
     
     # # Calculate parameters
     # remove unused parameters and count the number of parameters after that
@@ -383,6 +388,7 @@ def run(args):
     # Calculate FLOPs
     flops, _ = get_model_complexity_info(model, (args.n_input,), as_strings=True, print_per_layer_stat=True)
     print(f"FLOPs: {flops}")
+    write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start, 'flops':str(flops)}, file_access = 'a')
     
 
 def predict_set(args):
@@ -489,12 +495,12 @@ def predict_set(args):
    
 def main(args):
     
-    # for FC-KAN
+    # FC-KAN
     func_list = args.func_list.split(',')
     func_list = [x.strip() for x in func_list]
     args.func_list = func_list
     
-    # for PRKAN
+    # PRKAN + AF-KAN
     methods = args.methods.split(',')
     methods = [x.strip() for x in methods]
     args.methods = methods
@@ -528,18 +534,29 @@ if __name__ == "__main__":
     parser.add_argument('--func_list', type=str, default='dog,rbf') # for FC-KAN
     parser.add_argument('--combined_type', type=str, default='quadratic')
 
-    # use for SKAN
+    # SKAN
     parser.add_argument('--basis_function', type=str, default='sin')
     
-    # use for PRKAN
+    # PRKAN
     parser.add_argument('--func', type=str, default='rbf')
     parser.add_argument('--methods', type=str, default='attention')
     parser.add_argument('--norm_type', type=str, default='layer') 
     parser.add_argument('--base_activation', type=str, default='silu')
     parser.add_argument('--norm_pos', type=int, default=1)
-
+    
+    # AF-KAN
+    parser.add_argument('--func_norm', type=int, default=0, help='Function Norm')
+    
+    # MLP
+    parser.add_argument('--use_attn', type=int, default=0, help='Attention mechanism')
     args = parser.parse_args()
     
+    # ReLUKAN
+    args.use_attn = bool(args.use_attn) # Attention mechanism in MLP 
+    
+    # AF-KAN
+    args.func_norm = bool(args.func_norm) # Function norm
+
     global device
     device = args.device
     if (args.device == 'cuda'): # check available
@@ -547,26 +564,36 @@ if __name__ == "__main__":
     
     main(args)
 
-
 # Some examples
+#python run.py --mode "train" --model_name "fc_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic"
 
-#python run.py --mode "train" --model_name "fc_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --func_list "dog,sin" --combined_type "sum"
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 16 --n_input 3072 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "cifar10"
 
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 25 --grid_size 5 --spline_order 3 --ds_name "sl_mnist"
+#python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "relu"
 
-#python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer"
+#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "gelu" --methods "function_linear"
 
-#python run.py --mode "train" --model_name "pr_relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "gelu" --methods "local_attn"
+#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "gelu" --methods "global_attn,local_attn" --combined_type "sum_product"
+
+#python run.py --mode "train" --model_name "af_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "silu" --methods "multistep" --func "quad1"
+
+#python run.py --mode "train" --model_name "af_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "silu" --methods "global_attn" --func "quad1"
 
 #python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" 
 
 #python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --ds_name "cal_si" --note "full"
 
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 5 --spline_order 3 --ds_name "cal_si"
+#python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
+
+# python run.py --mode "train" --model_name "mlp" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --norm_type "layer" --base_activation "silu" --use_attn 1
+
+#python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --ds_name "cal_si" --note "full" --norm_type "layer" --base_activation "silu"
+
+#python run.py --mode "train" --model_name "efficient_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "skan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "sin"
 
-#python run.py --mode "train" --model_name "fast_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8 --ds_name "mnist"
+#python run.py --mode "train" --model_name "efficient_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 7 --n_output 10 --num_grids 8 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "faster_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8 --ds_name "mnist"
 
@@ -578,3 +605,4 @@ if __name__ == "__main__":
 
 #python run.py --mode "predict_set" --model_name "bsrbf_kan" --model_path='papers//BSRBF-KAN//bsrbf_paper//mnist//bsrbf_kan//bsrbf_kan__mnist__full_0.pth' --ds_name "mnist" --batch_size 64
 
+# python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2;
