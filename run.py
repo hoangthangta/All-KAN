@@ -15,7 +15,7 @@ import requests
 
 #import numpy as np
 from file_io import *
-from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN, AF_KAN
+from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN
 
 from pathlib import Path
 from PIL import Image
@@ -45,7 +45,7 @@ transform_omniglot = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),  # Ensure images are grayscale
     transforms.ToTensor()  # Convert images to PyTorch tensors
     ])
-
+    
 def remove_unused_params(model):
     """
         Remove unused parameters from the trained model
@@ -260,6 +260,16 @@ def run(args):
         model = ReLUKAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation) 
     elif(args.model_name == 'af_kan'):
         model = AF_KAN([args.n_input, args.n_hidden, args.n_output], grid = args.grid_size , k = args.spline_order, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type, func = args.func, func_norm = args.func_norm)
+    elif(args.model_name == 'cheby_kan'):
+        model = ChebyKAN([args.n_input, args.n_hidden, args.n_output], degree = args.spline_order) 
+    elif(args.model_name == 'fourier_kan'):
+        model = FourierKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order) 
+    elif(args.model_name == 'knots_kan'):
+        model = KnotsKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order) 
+    elif(args.model_name == 'rational_kan'):
+        model = RationalKAN([args.n_input, args.n_hidden, args.n_output], P_order = args.p_order, Q_order = args.q_order, groups = args.groups) 
+    elif(args.model_name == 'rbf_kan'):
+        model = RBF_KAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order) 
     else:
         # add other KANs here
         raise ValueError("Unsupported network type.")
@@ -376,7 +386,6 @@ def run(args):
     
     end = time.time()
     print(f"Training time (s): {end-start}")
-    
     
     # # Calculate parameters
     # remove unused parameters and count the number of parameters after that
@@ -513,6 +522,19 @@ def main(args):
         compare(args)'''
     
 if __name__ == "__main__":
+    
+    '''import torch
+    from fvcore.nn import FlopCountAnalysis
+
+    # Assuming FC_KAN is your model
+    #model = FC_KAN([784, 64, 10])
+    model = FC_KAN([784, 64, 10])
+    dummy_input = torch.randn(1, 784)  # Adjust based on your input shape
+
+    flop_counter = FlopCountAnalysis(model, dummy_input)
+    flops = flop_counter.total()
+
+    print(f"Total FLOPs: {flops:.2e}")'''
 
     parser = argparse.ArgumentParser(description='Training Parameters')
     parser.add_argument('--mode', type=str, default='train') # or predict_set
@@ -544,6 +566,11 @@ if __name__ == "__main__":
     parser.add_argument('--base_activation', type=str, default='silu')
     parser.add_argument('--norm_pos', type=int, default=1)
     
+    # RationalKAN
+    parser.add_argument('--p_order', type=int, default=3)
+    parser.add_argument('--q_order', type=int, default=3)
+    parser.add_argument('--groups', type=int, default=8)
+    
     # AF-KAN
     parser.add_argument('--func_norm', type=int, default=0, help='Function Norm')
     
@@ -556,6 +583,8 @@ if __name__ == "__main__":
     
     # AF-KAN
     args.func_norm = bool(args.func_norm) # Function norm
+    
+    
 
     global device
     device = args.device
@@ -568,6 +597,16 @@ if __name__ == "__main__":
 #python run.py --mode "train" --model_name "fc_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic"
 
 #python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 16 --n_input 3072 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "cifar10"
+
+#python run.py --mode "train" --model_name "rbf_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --grid_size 5 --spline_order 3
+
+#python run.py --mode "train" --model_name "rational_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8
+
+#python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 20 --spline_order 3 --ds_name "mnist"
+
+#python run.py --mode "train" --model_name "cheby_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "fashion_mnist"
+
+#python run.py --mode "train" --model_name "fourier_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "relu"
 
@@ -593,7 +632,7 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "skan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "sin"
 
-#python run.py --mode "train" --model_name "efficient_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 7 --n_output 10 --num_grids 8 --ds_name "mnist"
+#python run.py --mode "train" --model_name "efficient_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 100 --n_output 10 --num_grids 8 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "faster_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8 --ds_name "mnist"
 
