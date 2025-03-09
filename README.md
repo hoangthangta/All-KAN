@@ -29,6 +29,7 @@ These are KANs that I have developed:
 - BSRBF-KAN: Code is in this repo, other place is: https://github.com/hoangthangta/BSRBF_KAN.
 - FC-KAN: Code is in this repo, other place is: https://github.com/hoangthangta/FC_KAN.
 - PRKAN: Code is in this repo.
+- AF-KAN: Code is in this repo.
 
 ## Other KANs
 You can open a pull to add your KANs in this section.
@@ -38,6 +39,7 @@ You can open a pull to add your KANs in this section.
 - Wav-KAN: https://github.com/zavareh1/Wav-KAN
 - ReLUKAN: https://github.com/quiqi/relu_kan
 - SKAN: https://github.com/chikkkit/LSS-SKAN, https://github.com/chikkkit/LArctan-SKAN
+- ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN: https://github.com/icuraslw/fr-kan
 - More KANs: https://github.com/mintisan/awesome-kan
 
 # Experiments
