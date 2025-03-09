@@ -1,8 +1,7 @@
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-AFKAN-<blue>)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-RationalKAN-<blue>)
 
 # News
-- AF-KAN, ReLU-KAN
-- ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN
+- 8-9 Mar, 2025: AF-KAN, ReLU-KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN
 
 # To Do List
 - https://github.com/icuraslw/fr-kan :heavy_check_mark:
