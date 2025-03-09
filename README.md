@@ -167,7 +167,9 @@ AF-KAN is better with **grid_size=3** and **spline_order=3**.
 Fail with Fashion-MNIST? 
 <details>
 <summary><b>Click here for code!</b></summary>
-```python run.py --mode "train" --model_name "cheby_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "mnist"```
+
+  ```python run.py --mode "train" --model_name "cheby_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "mnist"```
+  
 ```python run.py --mode "train" --model_name "cheby_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "fashion_mnist"```
 </details>
 
@@ -175,7 +177,9 @@ Fail with Fashion-MNIST?
 Fail with MNIST + Fashion-MNIST?
 <details>
 <summary><b>Click here for code!</b></summary>
+
 ```python run.py --mode "train" --model_name "fourier_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"```
+  
 ```python run.py --mode "train" --model_name "fourier_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
 </details>
 
@@ -183,14 +187,18 @@ Fail with MNIST + Fashion-MNIST?
 Default **grid_size=20**.
 <details>
 <summary><b>Click here for code!</b></summary>
+
 ```python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"```
+  
 ```python run.py --mode "train" --model_name "knots_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
 </details>
 
 ### RationalKAN
 <details>
 <summary><b>Click here for code!</b></summary>
+
 ```python run.py --mode "train" --model_name "rational_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8```
+  
 ```python run.py --mode "train" --model_name "rational_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --p_order 3 --q_order 3 --groups 8```
 </details>
 
