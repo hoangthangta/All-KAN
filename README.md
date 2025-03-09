@@ -73,6 +73,9 @@ You can open a pull to add your KANs in this section.
 * *base_activation*: base activation, used in PRKAN, AF-KAN, ReLU-KAN (default='silu', other are *selu*, *gelu*, *elu*, *silu*, *relu*, *softplus*, *sigmoid*, *leaky_relu*)
 * *norm_pos*: data normalization position, used in PRKAN (default=1, other is *2*)
 * *func*: function types used in AF-KAN (*quad1*, *quad2*, *sum*, *prod*, *sum_prod*, *cubic1*, *cubic2*)
+* *p_order*: the order of P function, used in RationalKAN (default=3)
+* *q_order*:  the order of Q function, used in RationalKAN (default=3)
+* *groups*: number of groups used in RationalKAN (default=8)
 
 
 ## Commands
@@ -158,6 +161,37 @@ AF-KAN is better with **grid_size=3** and **spline_order=3**.
 
 ```python run.py --mode "train" --model_name "af_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
 
+</details>
+
+### ChebyKAN
+Fail with Fashion-MNIST? 
+<details>
+<summary><b>Click here for code!</b></summary>
+```python run.py --mode "train" --model_name "cheby_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "mnist"```
+```python run.py --mode "train" --model_name "cheby_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "fashion_mnist"```
+</details>
+
+### FourierKAN
+Fail with MNIST + Fashion-MNIST?
+<details>
+<summary><b>Click here for code!</b></summary>
+```python run.py --mode "train" --model_name "fourier_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"```
+```python run.py --mode "train" --model_name "fourier_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
+</details>
+
+### KnotsKAN
+Default **grid_size=20**.
+<details>
+<summary><b>Click here for code!</b></summary>
+```python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"```
+```python run.py --mode "train" --model_name "knots_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
+</details>
+
+### RationalKAN
+<details>
+<summary><b>Click here for code!</b></summary>
+```python run.py --mode "train" --model_name "rational_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8```
+```python run.py --mode "train" --model_name "rational_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --p_order 3 --q_order 3 --groups 8```
 </details>
 
 # Acknowledgement
