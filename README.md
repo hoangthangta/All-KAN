@@ -202,6 +202,17 @@ Default **grid_size=20**.
 ```python run.py --mode "train" --model_name "rational_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --p_order 3 --q_order 3 --groups 8```
 </details>
 
+### RBF_KAN
+Similar to FastKAN
+<details>
+<summary><b>Click here for code!</b></summary>
+
+```python run.py --mode "train" --model_name "rbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --grid_size 5 --spline_order 3```
+  
+```python run.py --mode "train" --model_name "rbf_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --grid_size 5 --spline_order 3```
+</details>
+
+
 # Acknowledgement
 Thank you all for your contributions and suggestions to this repo. If you like it, please consider giving it a star. Thanks!
 
