@@ -1,3 +1,4 @@
+# https://github.com/IcurasLW/FR-KAN/blob/main/src/efficient_kan/rational_kan.py
 import torch
 import torch.nn.functional as F
 import math
