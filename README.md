@@ -221,6 +221,19 @@ Thank you all for your contributions and suggestions to this repo. If you like i
 # How to cite?
 
 You can cite these papers.
+
+```
+@misc{ta2025afkanactivationfunctionbasedkolmogorovarnold,
+      title={AF-KAN: Activation Function-Based Kolmogorov-Arnold Networks for Efficient Representation Learning}, 
+      author={Hoang-Thang Ta and Anh Tran},
+      year={2025},
+      eprint={2503.06112},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2503.06112}, 
+}
+```
+
 ```
 @article{ta2025prkan,
   title={PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks},
