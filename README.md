@@ -22,6 +22,7 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 - **PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2501.07032
 - **BSRBF-KAN: A combination of B-splines and Radial Basis Functions in Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2406.11173
 - **FC-KAN: Function Combinations in Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2409.01763
+- **AF-KAN: Activation Function-Based Kolmogorov-Arnold Networks for Efficient Representation Learning**: https://arxiv.org/abs/2503.06112
 
 # Existing KANs
 ## My KANs
