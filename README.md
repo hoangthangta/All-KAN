@@ -1,7 +1,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-RationalKAN-<blue>)
 
 <p align="center">
-<img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="500" />
+<img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="400" />
 </p>
 
 # News
