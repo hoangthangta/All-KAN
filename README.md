@@ -218,7 +218,7 @@ Similar to FastKAN
 
 
 # Acknowledgement
-Thank you all for your contributions and suggestions to this repo. If you like it, please consider giving it a star. Thanks!
+Thank you all for your contributions and suggestions to this repo. If you like it, please consider giving us a star. Thanks! <3 <3 <3
 
 # How to cite?
 
