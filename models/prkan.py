@@ -45,13 +45,14 @@ class PRKANLayer(nn.Module):
         self.feature_weight = torch.nn.Parameter(torch.Tensor(feature_dim, 1))
         torch.nn.init.kaiming_uniform_(self.feature_weight, a=math.sqrt(5))
         
-        # Norms
-        self.layer_norm = nn.LayerNorm(self.input_dim)  
-        self.batch_norm = nn.BatchNorm1d(self.input_dim)
+        # Data norm
+        if norm_type == 'layer':
+            self.norm = nn.LayerNorm(self.input_dim)
+        elif(norm_type == 'batch'):
+            self.norm = nn.BatchNorm1d(self.input_dim)
+        else:
+            self.norm = nn.Identity()  # No-op normalization
 
-        '''self.layer_norm1 = nn.LayerNorm(self.output_dim)  
-        self.batch_norm1 = nn.BatchNorm1d(self.output_dim)'''
-        
         # RBF
         self.grid_min = grid_range[0]
         self.grid_max = grid_range[1]
@@ -154,10 +155,7 @@ class PRKANLayer(nn.Module):
     def use_conv2d(self, x):
         
         if (self.norm_pos == 1):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
         
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -171,10 +169,7 @@ class PRKANLayer(nn.Module):
         x = x.squeeze(-1).squeeze(1)
         
         if (self.norm_pos == 2):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
                 
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         
@@ -185,10 +180,7 @@ class PRKANLayer(nn.Module):
             only use convolutional layers
         """
         if (self.norm_pos == 1):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -202,10 +194,7 @@ class PRKANLayer(nn.Module):
         x = x.squeeze(1)  
         
         if (self.norm_pos == 2):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
                 
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         
@@ -217,10 +206,7 @@ class PRKANLayer(nn.Module):
         """
         
         if (self.norm_pos == 1):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -237,10 +223,7 @@ class PRKANLayer(nn.Module):
         x = x.reshape(x.size(0), -1)
         
         if (self.norm_pos == 2):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
        
         x = self.linear(x)
 
@@ -249,10 +232,7 @@ class PRKANLayer(nn.Module):
     def use_dim_sum(self, x):
         
         if (self.norm_pos == 1):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -264,10 +244,7 @@ class PRKANLayer(nn.Module):
         x = torch.sum(x, dim=2) 
         
         if (self.norm_pos == 2):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
             
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         return x
@@ -275,10 +252,7 @@ class PRKANLayer(nn.Module):
     def use_feature_weight(self, x):
         
         if (self.norm_pos == 1):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
             
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -291,10 +265,7 @@ class PRKANLayer(nn.Module):
         x = x.view(x.size(0), -1)
         
         if (self.norm_pos == 2):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
                 
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
         
@@ -304,10 +275,7 @@ class PRKANLayer(nn.Module):
     def use_attention(self, x):
         
         if (self.norm_pos == 1):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
                 
         if (self.func == 'rbf'):
             x = self.rbf(x) 
@@ -321,22 +289,15 @@ class PRKANLayer(nn.Module):
         x = x.sum(dim=-1) 
         
         if (self.norm_pos == 2):
-            if (self.norm_type == 'layer'):
-                x = self.layer_norm(x)       
-            elif (self.norm_type == 'batch'):
-                x = self.batch_norm(x)
+            x = self.norm(x)
             
         x = F.linear(self.activation(x), self.base_weight, self.base_weight_bias)
-        
         return x
     
     
     def use_base(self, x):
         
-        if (self.norm_type == 'layer'):
-            x = self.layer_norm(x)       
-        elif (self.norm_type == 'batch'):
-            x = self.batch_norm(x)
+        x = self.norm(x)
             
         x = self.activation(F.linear(x, self.base_weight, self.base_weight_bias))
         return x
@@ -400,9 +361,9 @@ class PRKAN(torch.nn.Module):
         func = 'rbf',
         norm_type = 'layer', 
         base_activation='silu',
-        methods = [],
+        methods = ['attention'],
         combined_type = 'sum',
-        norm_pos = 1, # postion to place data norm
+        norm_pos = 2, # postion to place data norm
     ):
         super(PRKAN, self).__init__()
         self.grid_size = grid_size

@@ -91,7 +91,6 @@ class AF_KANLayer(nn.Module):
         output = torch.zeros(X.shape[0], X.shape[1], self.output_size).to(device)
         
         for i, method in zip(range(X.shape[0]), self.methods):
-            
             x = X[i, :, :].squeeze(0)
             x = self.extract_features(x)
 
@@ -267,7 +266,6 @@ class AF_KANLayer(nn.Module):
         
         # Apply softmax to get weights + temperature scaling
         attn_weights = F.softmax(x_linear/self.temperature.clamp(min=1.0), dim=-2)  
-        
         #attn_weights = F.softmax(x_linear/self.temperature, dim=-2)  
         
         # Shape: (B, D)
@@ -403,8 +401,8 @@ class AF_KAN(nn.Module):
                     grid = 5, 
                     k = 3, 
                     norm_type = 'layer',
-                    base_activation = 'relu',
-                    methods = ['local_attn'], 
+                    base_activation = 'silu',
+                    methods = ['global_attn'], 
                     combined_type = 'sum',
                     func = 'quad1',
                     func_norm = True,
@@ -417,7 +415,6 @@ class AF_KAN(nn.Module):
         self.base_activation = base_activation
         self.methods = methods
         self.func = func
-        
         self.func_norm = func_norm
         
         self.rk_layers = []

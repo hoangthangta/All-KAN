@@ -30,7 +30,8 @@ class RBF_KANLayer(nn.Module):
         grid_size = 5,
         spline_order = 3,
         base_activation = torch.nn.SiLU,
-        grid_range=[-1.5, 1.5],
+        grid_range = [-1.5, 1.5],
+        norm_type = 'layer'
 
     ) -> None:
         super().__init__()
@@ -44,16 +45,22 @@ class RBF_KANLayer(nn.Module):
         self.rbf = RadialBasisFunction(grid_range[0], grid_range[1], grid_size+spline_order)
         torch.nn.init.kaiming_uniform_(self.base_weight, a=math.sqrt(5))
         torch.nn.init.kaiming_uniform_(self.spline_weight, a=math.sqrt(5))
+        
+        # Data norm
+        if norm_type == 'layer':
+            self.norm = nn.LayerNorm(input_size)
+        elif(norm_type == 'batch'):
+            self.norm = nn.BatchNorm1d(input_size)
+        else:
+            self.norm = nn.Identity()  # No-op normalization
 
     def forward(self, x):
         device = x.device
-        # x = self.layernorm(x)
+        x = self.norm(x)
         base_output = F.linear(self.base_activation(x), self.base_weight)
         rbf_output = self.rbf(x).view(x.size(0), -1)
         rbf_output = F.linear(rbf_output, self.spline_weight)
         return base_output + rbf_output
-
-
 
 
 class RBF_KAN(torch.nn.Module):
@@ -61,10 +68,11 @@ class RBF_KAN(torch.nn.Module):
     def __init__(
         self, 
         layers_hidden,
-        grid_size=5, 
-        spline_order = 3,
+        grid_size = 5, 
+        spline_order =3,
         base_activation=torch.nn.SiLU,
-        grid_range=[-1.5, 1.5]
+        grid_range = [-1.5, 1.5],
+        norm_type = 'layer'
     ):
         super(RBF_KAN, self).__init__()
         self.grid_size = grid_size
@@ -77,7 +85,8 @@ class RBF_KAN(torch.nn.Module):
                     output_dim,
                     grid_size=grid_size,
                     spline_order = spline_order,
-                    base_activation=base_activation
+                    base_activation=base_activation,
+                    norm_type = norm_type
                 )
             )
         

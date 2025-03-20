@@ -33,7 +33,8 @@ class FC_KANLayer(nn.Module):
         spline_order = 3,
         base_activation = torch.nn.SiLU,
         grid_range=[-1.5, 1.5],
-        bias = False
+        bias = False,
+        norm_type = 'layer'
 
     ) -> None:
         super().__init__()
@@ -45,6 +46,14 @@ class FC_KANLayer(nn.Module):
         self.input_dim = input_dim
         self.func_list = func_list
         self.use_bias = bias # for SKAN
+        
+        # Data norm
+        if norm_type == 'layer':
+            self.norm = nn.LayerNorm(input_dim)
+        elif(norm_type == 'batch'):
+            self.norm = nn.BatchNorm1d(input_dim)
+        else:
+            self.norm = nn.Identity()  # No-op normalization
         
         # add bias
         if bias:
@@ -186,8 +195,8 @@ class FC_KANLayer(nn.Module):
         
         device = X.device
         
-        # Layer normalization
-        X = self.layernorm(X)
+        # Data normalization
+        X = self.norm(X)
         
         output = torch.zeros(X.shape[0], X.shape[1], self.output_dim).to(device)
         for i, f in zip(range(X.shape[0]), self.func_list):
@@ -249,12 +258,13 @@ class FC_KAN(torch.nn.Module):
     def __init__(
         self, 
         layer_list,
-        func_list,
+        func_list = ['bs','dog'],
         grid_size=5,
         spline_order=3,  
         combined_type = 'quadratic',
         #output_type = 'all',
         base_activation=torch.nn.SiLU,
+        norm_type = 'layer'
     ):
         super(FC_KAN, self).__init__()
         self.grid_size = grid_size
@@ -278,6 +288,7 @@ class FC_KAN(torch.nn.Module):
                     grid_size=grid_size,
                     spline_order=spline_order,
                     base_activation=base_activation,
+                    norm_type = norm_type
                 )
             )
     
@@ -397,3 +408,4 @@ class FC_KAN(torch.nn.Module):
         #output = output + F.normalize(output, p=2, dim=1)
 
         return output
+        

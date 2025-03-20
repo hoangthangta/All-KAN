@@ -129,6 +129,7 @@ class FasterKANLayer(nn.Module):
         #use_base_update: bool = True,
         base_activation = F.silu,
         spline_weight_init_scale: float = 0.667,
+        norm_type = 'layer'
     ) -> None:
         super().__init__()
         self.layernorm = nn.LayerNorm(input_dim)
@@ -139,10 +140,17 @@ class FasterKANLayer(nn.Module):
         #if use_base_update:
         #    self.base_activation = base_activation
         #    self.base_linear = nn.Linear(input_dim, output_dim)
+        # Data norm
+        if norm_type == 'layer':
+            self.norm = nn.LayerNorm(input_size)
+        elif(norm_type == 'batch'):
+            self.norm = nn.BatchNorm1d(input_size)
+        else:
+            self.norm = nn.Identity()  # No-op normalization
 
     def forward(self, x):
         #print("Shape before LayerNorm:", x.shape)  # Debugging line to check the input shape
-        x = self.layernorm(x)
+        x = self.norm(x)
         #print("Shape After LayerNorm:", x.shape)
         spline_basis = self.rbf(x).view(x.shape[0], -1)
         #print("spline_basis:", spline_basis.shape)
@@ -196,6 +204,7 @@ class FasterKAN(nn.Module):
         #use_base_update: bool = True,
         base_activation = None,
         spline_weight_init_scale: float = 1.0,
+        norm_type = 'layer'
     ) -> None:
         super().__init__()
         self.layers = nn.ModuleList([
@@ -211,6 +220,7 @@ class FasterKAN(nn.Module):
                 #use_base_update=use_base_update,
                 base_activation=base_activation,
                 spline_weight_init_scale=spline_weight_init_scale,
+                norm_type = norm_type
             ) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])
         ])
         #print(f"FasterKAN layers_hidden[1:] shape: ", len(layers_hidden[1:]))   

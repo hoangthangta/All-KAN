@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -124,6 +125,7 @@ class FastKAN(nn.Module):
         use_base_update: bool = True,
         base_activation = F.silu,
         spline_weight_init_scale: float = 0.1,
+        use_layernorm: bool = True
     ) -> None:
         super().__init__()
         self.layers = nn.ModuleList([
@@ -135,6 +137,7 @@ class FastKAN(nn.Module):
                 use_base_update=use_base_update,
                 base_activation=base_activation,
                 spline_weight_init_scale=spline_weight_init_scale,
+                use_layernorm = use_layernorm
             ) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])
         ])
 

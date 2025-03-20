@@ -21,6 +21,8 @@ class FourierKANLayer(nn.Module):
         self.inputdim = inputdim
         self.outdim = outdim
         
+        self.layernorm = nn.LayerNorm(inputdim)
+        
         #The normalization has been chosen so that if given inputs where each coordinate is of unit variance,
         #then each coordinates of the output is of unit variance 
         #independently of the various sizes
@@ -32,6 +34,9 @@ class FourierKANLayer(nn.Module):
     #x.shape ( ... , indim ) 
     #out.shape ( ..., outdim)
     def forward(self,x):
+        
+        x = self.layernorm(x) # layer norm
+         
         xshp = x.shape
         outshape = xshp[0:-1]+(self.outdim,)
         x = torch.reshape(x,(-1,self.inputdim))
