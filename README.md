@@ -1,8 +1,8 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-RationalKAN-<blue>)
 
-<div style="display: flex;justify-content:center;">
-<img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="600" />
-</div>
+<p align="center">
+<img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="500" />
+</p>
 
 # News
 - **8-9 Mar, 2025**: Created AF-KAN, and updated ReLU-KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN.
