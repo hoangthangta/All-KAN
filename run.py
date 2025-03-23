@@ -1,30 +1,35 @@
 import argparse
+import copy
 import os
 import random
 import time
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from ptflops import get_model_complexity_info
-import copy
-
 import scipy.io
 import requests
 
-#import numpy as np
-from file_io import *
-from models import EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN, SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN
-
-from pathlib import Path
+from ptflops import get_model_complexity_info
 from PIL import Image
-from prettytable import PrettyTable
+
 from sklearn.metrics import precision_score, recall_score, f1_score
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-
 import matplotlib.pyplot as plt
+
+from file_io import *
+from utils import *
+from schedulers import *
+from storage import *
+from models import (
+    EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN,
+    SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN,
+    RationalKAN, RBF_KAN
+)
 
 # MNIST: Mean=0.1307, Std=0.3081
 # Fashion-MNIST: Mean=0.2860, Std=0.3530
@@ -35,9 +40,15 @@ transform = transforms.Compose([
     
 # CIFAR10
 transform_cifar = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    ])
+    
+'''transform_cifar_test = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),  # Convert (32,32,3) -> (32,32,1)
     transforms.ToTensor(),  
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  
-        ])
+    transforms.Normalize((0.5), (0.5))  
+    ])'''
 
 # Omniglot
 transform_omniglot = transforms.Compose([
@@ -46,32 +57,7 @@ transform_omniglot = transforms.Compose([
     transforms.ToTensor()  # Convert images to PyTorch tensors
     ])
     
-def remove_unused_params(model):
-    """
-        Remove unused parameters from the trained model
-    """
-    unused_params, _ = count_unused_params(model)
-    for name in unused_params:
-        #attr_name = name.split('.')[0]  # Get the top-level attribute name (e.g., 'unused')
-        if hasattr(model, name):
-            #print(f"Removing unused layer: {name}")
-            delattr(model, name)  # Dynamically remove the unused layer
-    return model
-
-def count_unused_params(model):
-    """
-        Detect and count unused parameters
-    """
-    unused_params = []
-    unused_param_count = 0
-
-    for name, param in model.named_parameters():
-        if param.grad is None:
-            unused_params.append(name)
-            unused_param_count += param.numel()  # Add the number of elements in this parameter
     
-    return unused_params, unused_param_count
-
 # use for CalTech 101 Silhouettes  
 def convert_to_tensors(dataset):
     images, labels = [], []
@@ -80,37 +66,10 @@ def convert_to_tensors(dataset):
         labels.append(label)
     return torch.tensor(images, dtype=torch.float32).unsqueeze(1), torch.tensor(labels)
     
-def count_params(model):
-    """
-        Count the model's parameters
-    """
-    table = PrettyTable(["Modules", "Parameters"])
-    total_params = 0
-    for name, parameter in model.named_parameters():
-        if not parameter.requires_grad:
-            continue
-        params = parameter.numel()
-        table.add_row([name, params])
-        total_params += params
-    print(table)
-    
-    # Detect and count unused parameters
-    unused_params, unused_param_count = count_unused_params(model)
-    
-    if (unused_param_count != 0):
-        print("Unused Parameters:", unused_params)
-        print(f"Total Trainable Params: {total_params}")
-        print(f"Total Number of Unused Parameters: {unused_param_count}")
-        print(f"Total Number of Used Parameters: {total_params - unused_param_count}")
-    else:
-        print(f"Total Trainable Params: {total_params}")
-        print(f"Total Number of Used Parameters: {total_params - unused_param_count}")
-    
-    return total_params
     
 def run(args):
     
-    start = time.time()
+    
     
     trainset, valset = [], []
     if (args.ds_name == 'mnist'):
@@ -198,7 +157,7 @@ def run(args):
     print('trainset: ', len(trainset))
     print('valset: ', len(valset))
     
-    trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=False)
+    trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=False) 
     valloader = DataLoader(valset, batch_size=args.batch_size, shuffle=False)
     
     # If having a test set
@@ -210,30 +169,7 @@ def run(args):
     output_path = 'output/' + args.ds_name + '/' + args.model_name + '/'
     Path(output_path).mkdir(parents=True, exist_ok=True)
     
-    saved_model_name, saved_model_history = '', ''
-    if (args.model_name == 'fc_kan'):
-        saved_model_name = args.model_name + '__' + args.ds_name + '__' + '-'.join(x for x in args.func_list) + '__' + args.combined_type + '__' + args.note + '.pth'
-        saved_model_history = args.model_name + '__' + args.ds_name + '__' + '-'.join(x for x in args.func_list) + '__' + args.combined_type + '__' + args.note + '.json' 
-    elif(args.model_name == 'skan'):
-        # args.basis_function
-        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.basis_function + '__' + args.note + '.pth'
-        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.basis_function + '__' + args.note + '.json'
-    elif(args.model_name == 'prkan'):
-        # model = PRKAN([args.n_input, args.n_hidden, args.n_output], grid_size = args.grid_size, spline_order = args.spline_order, num_grids = args.num_grids, func = args.func, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type)
-        if (len(args.methods) == 1): args.combined_type = 'none'
-        
-        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.pth'
-        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.func + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.note + '.json'
-    elif(args.model_name == 'af_kan'):
-        if (len(args.methods) == 1): args.combined_type = 'none'
-        
-        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.func + '__' + args.note + '.pth'
-        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.norm_type  + '__' + args.base_activation + '__' +'-'.join(x for x in args.methods)  + '__' + args.combined_type + '__' + args.func + '__' + args.note + '.json'
-    else:
-        saved_model_name = args.model_name + '__' + args.ds_name + '__' + args.note + '.pth'
-        saved_model_history =  args.model_name + '__' + args.ds_name + '__' + args.note + '.json'
-    
-    with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
+    output_path, saved_model_name, saved_model_history = create_model_storage(args)
 
     # Define models
     model = {}
@@ -276,12 +212,22 @@ def run(args):
     model.to(device)
 
     # Define optimizer
-    lr = 1e-3
-    wc = 1e-4
-    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=wc)
-    
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
+
     # Define learning rate scheduler
-    scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+    if(args.scheduler == 'StepLR'):
+        scheduler = get_scheduler(optimizer, name="StepLR", step_size = args.epochs//3)
+    elif(args.scheduler == 'CosineAnnealingLR'):
+        scheduler = get_scheduler(optimizer, name="CosineAnnealingLR", epochs = args.epochs)
+    elif(args.scheduler == 'OneCycleLR'):
+        scheduler = get_scheduler(optimizer, name="OneCycleLR", step_size=len(trainloader)*args.epochs)
+    elif(args.scheduler == 'ExponentialLR'):
+        scheduler = get_scheduler(optimizer, name="ExponentialLR")
+    elif(args.scheduler == 'CyclicLR'):
+        scheduler = get_scheduler(optimizer, name="CyclicLR", step_size=len(trainloader)*2)
+    else:
+        print('You should choose a scheduler (StepLR, CosineAnnealingLR, OneCycleLR, ExponentialLR).')
+        return
     
     # Define loss
     criterion = nn.CrossEntropyLoss()
@@ -294,12 +240,16 @@ def run(args):
         y_true_test = [labels.tolist() for images, labels in testloader]
         y_true_test = sum(y_true_test, [])
     
+    grad_history = []
+    
+    start = time.time() # should be here better
+    
     for epoch in range(1, args.epochs + 1):
         # Train
         model.train()
         train_accuracy, train_loss = 0, 0
         with tqdm(trainloader) as pbar:
-            for i, (images , labels) in enumerate(pbar):
+            for i, (images, labels) in enumerate(pbar):
 
                 images = images.view(-1, args.n_input).to(device)
                 optimizer.zero_grad()
@@ -308,13 +258,29 @@ def run(args):
                 train_loss += loss.item()
                 loss.backward()
                 optimizer.step()
+                
+                # Update learning rate
+                if(args.scheduler not in ['StepLR', 'ExponentialLR', 'CosineAnnealingLR']):
+                    scheduler.step()
+                
                 #accuracy = (output.argmax(dim=1) == labels.to(device)).float().mean()
                 train_accuracy += (output.argmax(dim=1) == labels.to(device)).float().mean().item()
                 pbar.set_postfix(loss=train_loss/len(trainloader), accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])
         
+        # Update learning rate
+        if(args.scheduler in ['StepLR', 'ExponentialLR', 'CosineAnnealingLR']): 
+            scheduler.step()
+        
         train_loss /= len(trainloader)
         train_accuracy /= len(trainloader)
+        
+        grad_norm = cal_grad_norm(model)
+        if grad_norm < 1e-5:
+            print("Warning: Gradient norm is very low. The model might be at a local minimum or saddle point.")
             
+        grad_mean = cal_grad_mean(model)
+        grad_history.append(grad_mean.item())
+        
         # Validation
         model.eval()
         val_loss, val_accuracy = 0, 0
@@ -340,16 +306,13 @@ def run(args):
         val_loss /= len(valloader)
         val_accuracy /= len(valloader)
 
-        # Update learning rate
-        scheduler.step()
-
         # Choose best model
         if (val_accuracy > best_accuracy):
             best_accuracy = val_accuracy
             best_epoch = epoch
             torch.save(model, output_path + '/' + saved_model_name)
               
-        print(f"Epoch [{epoch}/{args.epochs}], Train Loss: {train_loss:.6f}, Train Accuracy: {train_accuracy:.6f}")
+        print(f"Epoch [{epoch}/{args.epochs}], Train Loss: {train_loss:.6f}, Train Accuracy: {train_accuracy:.6f}, Grad mean: {grad_mean.item():.6f}, Grad L2 Norm: {grad_norm:.6f}")
         print(f"Epoch [{epoch}/{args.epochs}], Val Loss: {val_loss:.6f}, Val Accuracy: {val_accuracy:.6f}, F1: {f1:.6f}, Precision: {pre:.6f}, Recall: {recall:.6f}")
         
         test_loss, test_accuracy = 0, 0
@@ -380,13 +343,21 @@ def run(args):
             print(f"Epoch [{epoch}/{args.epochs}], Test Loss: {test_loss:.6f}, Test Accuracy: {test_accuracy:.6f}, F1: {f1_test:.6f}, Precision: {pre_test:.6f}, Recall: {recall_test:.6f}")
 
         if test_accuracy != 0: # there has a test set
-            write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'test_accuracy':test_accuracy, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'test_f1_macro':f1_test, 'test_pre_macro':pre_test, 'test_re_macro':recall_test,  'val_f1_macro':f1, 'val_pre_macro':pre, 'val_re_macro':recall, 'best_epoch':best_epoch, 'test_loss': test_loss, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
+            write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'test_accuracy':test_accuracy, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'test_f1_macro':f1_test, 'test_pre_macro':pre_test, 'test_re_macro':recall_test,  'val_f1_macro':f1, 'val_pre_macro':pre, 'val_re_macro':recall, 'best_epoch':best_epoch, 'test_loss': test_loss, 'val_loss': val_loss, 'train_loss':train_loss, 'learning_rate': optimizer.param_groups[0]['lr'], 'grad_mean': grad_mean.item(), 'grad_L2_norm': grad_norm}, file_access = 'a')
         else:
-            write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'f1_macro':f1, 'pre_macro':pre, 're_macro':recall, 'best_epoch':best_epoch, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
+            write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'f1_macro':f1, 'pre_macro':pre, 're_macro':recall, 'best_epoch':best_epoch, 'val_loss': val_loss, 'train_loss':train_loss, 'learning_rate': optimizer.param_groups[0]['lr'], 'grad_mean': grad_mean.item(), 'grad_L2_norm': grad_norm}, file_access = 'a')
+    
     
     end = time.time()
     print(f"Training time (s): {end-start}")
     
+    # Plot gradient flow over epochs
+    plt.plot(grad_history)
+    plt.xlabel("Epochs")
+    plt.ylabel("Mean Gradient Norm")
+    plt.title("Gradient Flow Over Training")
+    plt.show()
+
     # # Calculate parameters
     # remove unused parameters and count the number of parameters after that
     remove_unused_params(model)
@@ -555,6 +526,9 @@ if __name__ == "__main__":
     parser.add_argument('--n_part', type=float, default=0)
     parser.add_argument('--func_list', type=str, default='dog,rbf') # for FC-KAN
     parser.add_argument('--combined_type', type=str, default='quadratic')
+    
+    parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
+    parser.add_argument('--wc', type=float, default=1e-4, help='Weight decay')
 
     # SKAN
     parser.add_argument('--basis_function', type=str, default='sin')
@@ -571,8 +545,11 @@ if __name__ == "__main__":
     parser.add_argument('--q_order', type=int, default=3)
     parser.add_argument('--groups', type=int, default=8)
     
+    # All
+    parser.add_argument('--scheduler', type=str, default='ExponentialLR')
+    
     # AF-KAN
-    parser.add_argument('--func_norm', type=int, default=0, help='Function Norm')
+    parser.add_argument('--func_norm', type=int, default=0, help='Function norm')
     
     # MLP
     parser.add_argument('--use_attn', type=int, default=0, help='Attention mechanism')
@@ -583,8 +560,6 @@ if __name__ == "__main__":
     
     # AF-KAN
     args.func_norm = bool(args.func_norm) # Function norm
-    
-    
 
     global device
     device = args.device
@@ -596,25 +571,27 @@ if __name__ == "__main__":
 # Some examples
 #python run.py --mode "train" --model_name "fc_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic"
 
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
+
 #python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 16 --n_input 3072 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "cifar10"
 
-#python run.py --mode "train" --model_name "rbf_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --grid_size 5 --spline_order 3
+#python run.py --mode "train" --model_name "rbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --grid_size 5 --spline_order 3
 
-#python run.py --mode "train" --model_name "rational_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8
+#python run.py --mode "train" --model_name "rational_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8
 
 #python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 20 --spline_order 3 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "cheby_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "fashion_mnist"
 
-#python run.py --mode "train" --model_name "fourier_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"
+#python run.py --mode "train" --model_name "fourier_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"
 
 #python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "relu"
 
 #python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "gelu" --methods "function_linear"
 
-#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "gelu" --methods "global_attn,local_attn" --combined_type "sum_product"
+#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "gelu" --methods "global_attn," --combined_type "sum_product"
 
-#python run.py --mode "train" --model_name "af_kan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "silu" --methods "multistep" --func "quad1"
+#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "silu" --methods "global_attn" --func "quad1"
 
 #python run.py --mode "train" --model_name "af_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "silu" --methods "global_attn" --func "quad1"
 
@@ -622,9 +599,9 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --ds_name "cal_si" --note "full"
 
-#python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
 
-# python run.py --mode "train" --model_name "mlp" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --norm_type "layer" --base_activation "silu" --use_attn 1
+# python run.py --mode "train" --model_name "mlp" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
 
 #python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --ds_name "cal_si" --note "full" --norm_type "layer" --base_activation "silu"
 
@@ -632,7 +609,7 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "skan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "sin"
 
-#python run.py --mode "train" --model_name "efficient_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 100 --n_output 10 --num_grids 8 --ds_name "mnist"
+#python run.py --mode "train" --model_name "fast_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8 --ds_name "mnist"
 
 #python run.py --mode "train" --model_name "faster_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8 --ds_name "mnist"
 
@@ -640,8 +617,26 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --n_input 3072 --n_hidden 64 --n_output 10 --ds_name "cifar10" --note "full"
 
-# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --n_input 3072 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "" --base_activation "silu" --methods "conv2d" --combined_type "product"
+# python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "" --base_activation "silu" --methods "conv2d" --combined_type "product"
 
 #python run.py --mode "predict_set" --model_name "bsrbf_kan" --model_path='papers//BSRBF-KAN//bsrbf_paper//mnist//bsrbf_kan//bsrbf_kan__mnist__full_0.pth' --ds_name "mnist" --batch_size 64
 
-# python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2;
+# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2 --scheduler "ExponentialLR" --lr 5e-7 
+
+# python run.py --mode "train" --model_name "prkan" --epochs 15 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2 --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "silu" --methods "global_attn" --func "quad1" --scheduler "OneCycleLR"
+
+# python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "rational_kan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8 --scheduler "OneCycleLR"
+
+# python run.py --mode "train" --model_name "fc_kan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "mlp" --epochs 5 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 5 --batch_size 16 --n_input 3072 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --grid_size 5 --spline_order 3 --ds_name "cal_si" --scheduler "CyclicLR"
+
+# python run.py --mode "train" --model_name "fc_kan" --epochs 10 --batch_size 64 --n_input 784 --n_hidden 392 --n_output 102 --ds_name "cal_si" --func_list "bs,dog" --combined_type "quadratic" --scheduler "OneCycleLR"
