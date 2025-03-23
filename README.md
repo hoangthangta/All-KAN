@@ -9,11 +9,9 @@
 - **23 Mar, 2025**: Update function fitting (run_ff.py) and code.
 
 # To Do List
-- https://github.com/icuraslw/fr-kan :heavy_check_mark:
 - https://github.com/Adamdad/kat
 - https://github.com/lif314/X-KANeRF
 - https://github.com/Jinfeng-Xu/FKAN-GCF
-- Add "function fitting" tasks
 
 # All-KAN: All Kolmogorov-Arnold Networks We Know
 This repository gathers all known Kolmogorov-Arnold Networks (including those I developed) from various sources. These networks are implemented for **image classification on some simple image classification datasets (MNIST, Fashion-MNIST, etc)**. I hope this collection inspires you and the broader research community to advance the development of even better KANs in the future.
