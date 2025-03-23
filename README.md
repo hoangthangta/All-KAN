@@ -6,6 +6,7 @@
 
 # News
 - **8-9 Mar, 2025**: Created AF-KAN, and updated ReLU-KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN.
+- **23 Mar, 2025**: Update function fitting (run_ff.py) and code.
 
 # To Do List
 - https://github.com/icuraslw/fr-kan :heavy_check_mark:
