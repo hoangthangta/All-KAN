@@ -63,6 +63,8 @@ You can open a pull to add your KANs in this section.
 * *epochs*: the number of epochs.
 * *batch_size*: the training batch size (default: 64).
 * *layers*: network layers (default: "784,64,10" = 784 input nodes, 64 hidden nodes, and 10 output nodes).
+* *lr*: learning rate (default: 1e-3)
+* *wc*: weight decay (default: 1e-4)
 * *grid_size*: The size of the grid (default: 5). Favor using bsrbf_kan, efficient_kan, and other variants that leverage B-splines or similar functions.
 * *spline_order*: The order of spline (default: 3). Favor using bsrbf_kan, efficient_kan and other KAN variants that leverage B-splines or similar functions.
 * *num_grids*: The number of grids, equals grid_size + spline_order (default: 8). Favor using fast_kan and faster_kan models based on Radial Basis Functions (RBFs).
