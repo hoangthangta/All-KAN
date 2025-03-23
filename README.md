@@ -58,7 +58,7 @@ You can open a pull to add your KANs in this section.
 
 ## Parameters
 * *mode*: working mode ("train" or "predict_set").
-* *ds_name*: dataset name ("mnist" or "fashion_mnist").
+* *ds_name*: dataset name ("mnist", "fashion_mnist", "cifar10"). Note: We did not test the performance on CIFAR10.
 * *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*, etc.).
 * *epochs*: the number of epochs.
 * *batch_size*: the training batch size (default: 64).
