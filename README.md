@@ -62,9 +62,7 @@ You can open a pull to add your KANs in this section.
 * *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*, etc.).
 * *epochs*: the number of epochs.
 * *batch_size*: the training batch size (default: 64).
-* *n_input*: The number of input neurons (default: 28^2 = 784).
-* *n_hidden*: The number of hidden neurons. We use only 1 hidden layer. You can modify the code (**run.py**) for more layers.
-* *n_output*: The number of output neurons (classes). For MNIST and Fashion-MNIST, there are 10 classes.
+* *layers*: network layers (default: "784,64,10" = 784 input nodes, 64 hidden nodes, and 10 output nodes).
 * *grid_size*: The size of the grid (default: 5). Favor using bsrbf_kan, efficient_kan, and other variants that leverage B-splines or similar functions.
 * *spline_order*: The order of spline (default: 3). Favor using bsrbf_kan, efficient_kan and other KAN variants that leverage B-splines or similar functions.
 * *num_grids*: The number of grids, equals grid_size + spline_order (default: 8). Favor using fast_kan and faster_kan models based on Radial Basis Functions (RBFs).
@@ -92,17 +90,17 @@ For BSBRF-KAN, also see: https://github.com/hoangthangta/BSRBF_KAN.
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --ds_name "mnist" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
+```python run.py --mode "train" --ds_name "mnist" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3```
 
-```python run.py --mode "train" --ds_name "mnist" --model_name "efficient_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3```
+```python run.py --mode "train" --ds_name "mnist" --model_name "efficient_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3```
 
-```python run.py --mode "train" --ds_name "mnist" --model_name "fast_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8```
+```python run.py --mode "train" --ds_name "mnist" --model_name "fast_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --num_grids 8```
 
-```python run.py --mode "train" --ds_name "mnist" --model_name "faster_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --num_grids 8```
+```python run.py --mode "train" --ds_name "mnist" --model_name "faster_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --num_grids 8```
 
-```python run.py --mode "train" --ds_name "mnist" --model_name "gottlieb_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3```
+```python run.py --mode "train" --ds_name "mnist" --model_name "gottlieb_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --spline_order 3```
 
-```python run.py --mode "train" --ds_name "mnist" --model_name "mlp" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10```
+```python run.py --mode "train" --ds_name "mnist" --model_name "mlp" --epochs 25 --batch_size 64 --layers "784,64,10"```
 
 </details>
 
@@ -113,35 +111,35 @@ For FC-KAN, also see: https://github.com/hoangthangta/FC_KAN. FC-KAN models (Dif
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "sum"```
+```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "sum"```
 
-```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "product"```
+```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "product"```
 
-```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "sum_product"```
+```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "sum_product"```
 
-```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "quadratic"```
+```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "quadratic"```
 
-```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "concat"```
+```python run.py --mode "train" --model_name "fc_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func_list "dog,bs" --combined_type "concat"```
 </details>
 
 ### SKAN
 <details>
 <summary><b>Click here for code!</b></summary>
   
-```python run.py --mode "train" --model_name "skan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --basis_function "arctan"```
+```python run.py --mode "train" --model_name "skan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --basis_function "arctan"```
 
-```python run.py --mode "train" --model_name "skan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --basis_function "arctan"```
+```python run.py --mode "train" --model_name "skan" --epochs 35 --batch_size 64 --layers "784,64,10" --ds_name "fashion_mnist" --basis_function "arctan"```
 </details>
 
 ### PRKAN
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 1;```
+```python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 1;```
 
-```python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_2" --norm_type "layer" --norm_pos 1;```
+```python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_2" --norm_type "layer" --norm_pos 1;```
 
-```python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2;```
+```python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2;```
 
 </details>
 
@@ -150,13 +148,13 @@ ReLUKAN is better with **grid_size=3** and **spline_order=3**.
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer";```
+```python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer";```
 
-```python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "batch";```
+```python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "batch";```
 
-```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "layer";```
+```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "layer";```
 
-```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "batch";```
+```python run.py --mode "train" --model_name "relu_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --norm_type "batch";```
 
 </details>
 
@@ -165,9 +163,9 @@ AF-KAN is better with **grid_size=3** and **spline_order=3**.
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
+```python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
 
-```python run.py --mode "train" --model_name "af_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
+```python run.py --mode "train" --model_name "af_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "fashion_mnist" --note "full" --n_part 0 --base_activation "silu" --norm_type "layer" --method "global_attn" --func "quad1";```
 
 </details>
 
@@ -176,9 +174,9 @@ Fail with Fashion-MNIST?
 <details>
 <summary><b>Click here for code!</b></summary>
 
-  ```python run.py --mode "train" --model_name "cheby_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "mnist"```
+  ```python run.py --mode "train" --model_name "cheby_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --spline_order 3 --ds_name "mnist"```
   
-```python run.py --mode "train" --model_name "cheby_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --spline_order 3 --ds_name "fashion_mnist"```
+```python run.py --mode "train" --model_name "cheby_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --spline_order 3 --ds_name "fashion_mnist"```
 </details>
 
 ### FourierKAN
@@ -186,9 +184,9 @@ Fail with MNIST + Fashion-MNIST?
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "fourier_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"```
+```python run.py --mode "train" --model_name "fourier_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "mnist"```
   
-```python run.py --mode "train" --model_name "fourier_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
+```python run.py --mode "train" --model_name "fourier_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
 </details>
 
 ### KnotsKAN
@@ -196,18 +194,18 @@ Default **grid_size=20**.
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "mnist"```
+```python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "mnist"```
   
-```python run.py --mode "train" --model_name "knots_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
+```python run.py --mode "train" --model_name "knots_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"```
 </details>
 
 ### RationalKAN
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "rational_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --p_order 3 --q_order 3 --groups 8```
+```python run.py --mode "train" --model_name "rational_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --p_order 3 --q_order 3 --groups 8```
   
-```python run.py --mode "train" --model_name "rational_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --p_order 3 --q_order 3 --groups 8```
+```python run.py --mode "train" --model_name "rational_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --ds_name "fashion_mnist" --p_order 3 --q_order 3 --groups 8```
 </details>
 
 ### RBF_KAN
@@ -215,9 +213,9 @@ Similar to FastKAN
 <details>
 <summary><b>Click here for code!</b></summary>
 
-```python run.py --mode "train" --model_name "rbf_kan" --epochs 25 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "mnist" --grid_size 5 --spline_order 3```
+```python run.py --mode "train" --model_name "rbf_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --grid_size 5 --spline_order 3```
   
-```python run.py --mode "train" --model_name "rbf_kan" --epochs 35 --batch_size 64 --n_input 784 --n_hidden 64 --n_output 10 --ds_name "fashion_mnist" --grid_size 5 --spline_order 3```
+```python run.py --mode "train" --model_name "rbf_kan" --epochs 35 --batch_size 64 --layers "784,64,10" --ds_name "fashion_mnist" --grid_size 5 --spline_order 3```
 </details>
 
 
