@@ -1,4 +1,4 @@
-python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10 --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 2;
+python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_1" --norm_type "layer" --norm_pos 2;
 sleep 15s;
 python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "conv1d_2" --norm_type "layer" --norm_pos 2;
 sleep 15s;
