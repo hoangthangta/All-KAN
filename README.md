@@ -57,6 +57,7 @@ You can open a pull to add your KANs in this section.
 * tqdm==4.66.4
 
 ## Parameters
+### Image Classification (run.py)
 * *mode*: working mode ("train" or "predict_set").
 * *ds_name*: dataset name ("mnist", "fashion_mnist", "cifar10"). Note: We did not test the performance on CIFAR10.
 * *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*, etc.).
@@ -85,7 +86,12 @@ You can open a pull to add your KANs in this section.
 * *p_order*: the order of P function, used in RationalKAN (default=3)
 * *q_order*:  the order of Q function, used in RationalKAN (default=3)
 * *groups*: number of groups used in RationalKAN (default=8)
-
+### Function fitting (run_ff.py)
+* *mode*: working mode ("train").
+* *model_name*: type of models (*bsrbf_kan*, *efficient_kan*, *fast_kan*, *faster_kan*, *mlp*, and *fc_kan*, etc.).
+* *layers*: network layers.
+* *func*: function types used for fitting, check run_ff.py to see all functions.
+* *epochs*: the number of epochs.
 
 ## Commands
 ### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
