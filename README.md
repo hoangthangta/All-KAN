@@ -28,15 +28,25 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 - **BSRBF-KAN: A combination of B-splines and Radial Basis Functions in Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2406.11173
 - **FC-KAN: Function Combinations in Kolmogorov-Arnold Networks**: https://arxiv.org/abs/2409.01763
 - **AF-KAN: Activation Function-Based Kolmogorov-Arnold Networks for Efficient Representation Learning**: https://arxiv.org/abs/2503.06112
+  
 ## Advantages of KANs
-- Perform exceptionally well on tasks involving complex curves, such as function fitting and symbolic regression, often outperforming traditional MLPs.
+- Perform exceptionally well on tasks involving mathematics, physics, and complex curves, such as function fitting and symbolic regression, often outperforming traditional MLPs.
 - Capture richer and more meaningful data features, leading to more expressive representations and improved overall model performance.
 - Inherent interpretability, as KANs use spline-based or polynomial-based functions, making their internal representations more understandable compared to black-box MLPs.
 - Better generalization for smooth functions, due to their ability to approximate functions with fewer layers while preserving accuracy.
+- 
 ## Problem of KANs
 - *Parameter inefficiency*: KANs typically require more parameters than MLPs because they capture data features using polynomial functions such as B-splines.
 - *Longer training time*: Due to parameter inefficiency, the training time is longer.
 - *Less Scalability*: Due to parameter inefficiency, adding more layers to KANs results in bulky networks. This is why some suggest that KANs should be designed with fewer layers.
+- 
+## Proper use of KANs in modern neural networks
+While KANs can function as standalone networks for certain problems, they are often used as components within neural architectures such as CNNs, RNNs, or Transformers, where they can replace MLP layers, convolutional layers, or other components. In this role, KANs act as a supplement to enhance the overall performance of the network.
+
+## Why we must use KANs?
+Simply put, KANs offer a different approach to capturing data compared to MLPs. Instead of relying on linear mappings as in MLPs, KANs use diverse polynomial functions and their combinations to represent data. This encourages researchers and practitioners to explore the role of mathematical functions in designing neural networks, which is a positive trend that could lead to the development of more diverse neural network architectures in the future. 
+
+If you are bored with MLPs, which have been developed over several decades, KANs offer a fresh and innovative alternative to explore.
 
 # Existing KANs
 ## My KANs
