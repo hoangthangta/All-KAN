@@ -30,8 +30,8 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 - **AF-KAN: Activation Function-Based Kolmogorov-Arnold Networks for Efficient Representation Learning**: https://arxiv.org/abs/2503.06112
   
 ## Advantages of KANs
-- Perform exceptionally well on tasks involving mathematics, physics, and complex curves, such as function fitting and symbolic regression, often outperforming traditional MLPs.
-- Capture richer and more meaningful data features, leading to more expressive representations and improved overall model performance.
+- Perform exceptionally well on tasks involving mathematics, physics, and complex curves, such as function fitting and symbolic regression, often outperforming traditional MLPs. So, consider using KANs with data that contains curves.
+- Capture richer and more meaningful data features, leading to more expressive representations and improved overall model performance. 
 - Inherent interpretability, as KANs use spline-based or polynomial-based functions, making their internal representations more understandable compared to black-box MLPs.
 - Better generalization for smooth functions, due to their ability to approximate functions with fewer layers while preserving accuracy.
 ## Problem of KANs
