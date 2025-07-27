@@ -41,7 +41,7 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 ## Proper use of KANs in modern neural networks
 While KANs can function as standalone networks for certain problems, they are often used as components within neural architectures such as CNNs, RNNs, or Transformers, where they can replace MLP layers, convolutional layers, or other components. In this role, KANs act as a supplement to enhance the overall performance of the network.
 ## Why we must use KANs?
-Simply put, KANs offer a different approach to capturing data compared to MLPs. Instead of relying on linear mappings as in MLPs, KANs use diverse polynomial functions and their combinations to represent data. This encourages researchers and practitioners to explore the role of mathematical functions in designing neural networks, which is a positive trend that could lead to the development of more diverse neural network architectures in the future. 
+Simply put, KANs offer a different approach to capturing data compared to MLPs. Instead of relying on linear mappings as in MLPs, KANs use diverse polynomial functions and their combinations to represent data. **This encourages researchers and practitioners to explore more the role of mathematical functions in designing neural networks, which is a positive trend that could lead to the development of more diverse neural network architectures in the future.**
 
 If you are bored with MLPs, which have been developed over several decades, KANs offer a fresh and innovative alternative to explore.
 
