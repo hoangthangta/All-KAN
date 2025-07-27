@@ -37,7 +37,7 @@ Kolmogorov-Arnold Networks (KANs) are a type of neural network architecture insp
 ## Problem of KANs
 - *Parameter inefficiency*: KANs typically require more parameters than MLPs because they capture data features using polynomial functions such as B-splines.
 - *Longer training time*: Due to parameter inefficiency, the training time is longer.
-- *Less Scalability*: Due to parameter inefficiency, adding more layers to KANs results in bulky networks. This is why some suggest that KANs should be designed with fewer layers.
+- *Less Scalability*: Again, due to parameter inefficiency, adding more layers to KANs results in bulky networks. This is why some suggest that KANs should be designed with fewer layers.
 ## Proper use of KANs in modern neural networks
 While KANs can function as standalone networks for certain problems, they are often used as components within neural architectures such as CNNs, RNNs, or Transformers, where they can replace MLP layers, convolutional layers, or other components. In this role, KANs act as a supplement to enhance the overall performance of the network.
 ## Why we must use KANs?
