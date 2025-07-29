@@ -4,7 +4,7 @@
 <img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="400" />
 </p>
 
-# Plagiarism from Chinese authors
+# Plagiarism behaviors from Chinese authors
 **We strongly condemn the plagiarism committed by the authors of the work titled "CPR-KANsformer: An Adaptive Multi-dimensional CSI Feature Extraction Model for Human Activity Recognition" ([link](https://link.springer.com/chapter/10.1007/978-981-96-9955-1_38)). They have copied substantial elements from our original work, "PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks" (arXiv link), including the network name "PRKAN", methodological details, and even figures.**
 
 # News
