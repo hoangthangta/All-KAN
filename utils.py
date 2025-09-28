@@ -12,7 +12,7 @@ def cal_grad_norm(model):
             total_norm += param.grad.norm(2).item() ** 2
     return total_norm ** 0.5  # L2 norm
 
-def count_params(model):
+def count_params(model, display = True):
     """
     Count the model's parameters
     """
@@ -29,6 +29,8 @@ def count_params(model):
     unused_params, unused_param_count = count_unused_params(model)
 
     used_params = max(0, total_params - unused_param_count)  # Prevent negative used params
+    
+    if (display == False): return total_params
     if unused_param_count > 0:
         print("Unused Parameters:", unused_params)
         print(f"Total Trainable Params: {total_params}")
