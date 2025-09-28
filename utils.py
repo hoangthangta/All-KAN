@@ -24,7 +24,7 @@ def count_params(model, display = True):
         params = parameter.numel()
         table.add_row([name, params])
         total_params += params
-    print(table)
+    if (display == True): print(table)
 
     unused_params, unused_param_count = count_unused_params(model)
 
