@@ -142,9 +142,9 @@ class FasterKANLayer(nn.Module):
         #    self.base_linear = nn.Linear(input_dim, output_dim)
         # Data norm
         if norm_type == 'layer':
-            self.norm = nn.LayerNorm(input_size)
+            self.norm = nn.LayerNorm(input_dim)
         elif(norm_type == 'batch'):
-            self.norm = nn.BatchNorm1d(input_size)
+            self.norm = nn.BatchNorm1d(input_dim)
         else:
             self.norm = nn.Identity()  # No-op normalization
 
