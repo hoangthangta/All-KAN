@@ -4,9 +4,6 @@
 <img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="400" />
 </p>
 
-# Plagiarism behaviors
-We strongly condemn the plagiarism committed by the authors of the work titled **"CPR-KANsformer: An Adaptive Multi-dimensional CSI Feature Extraction Model for Human Activity Recognition" ([link](https://link.springer.com/chapter/10.1007/978-981-96-9955-1_38))**. They have copied substantial elements from our original work, "PRKAN: Parameter-Reduced Kolmogorov-Arnold Networks" ([arXiv link](https://arxiv.org/abs/2501.07032)), including the network name "PRKAN", methodological details, and even figures (https://media.springernature.com/lw685/springer-static/image/chp%3A10.1007%2F978-981-96-9955-1_38/MediaObjects/670428_1_En_38_Fig1_HTML.png).
-
 # News
 - **8-9 Mar, 2025**: Created AF-KAN, and updated ReLU-KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN.
 - **23 Mar, 2025**: Update function fitting (run_ff.py) and code.
