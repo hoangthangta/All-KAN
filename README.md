@@ -111,7 +111,7 @@ You can open a pull to add your KANs in this section.
 
 ## Commands
 ### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
-For BSBRF-KAN, also see: https://github.com/hoangthangta/BSRBF_KAN.
+For BSRBF-KAN, also see: https://github.com/hoangthangta/BSRBF_KAN.
 <details>
 <summary><b>Click here for code!</b></summary>
 
