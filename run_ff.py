@@ -208,29 +208,30 @@ if __name__ == '__main__':
     main(args)
 
 # 1D
-# python run_ff2.py --mode "train" --model_name "mlp" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "mlp" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu"
 
-# python run_ff2.py --mode "train" --model_name "fast_kan" --layers "1,1" --func "func1" --epochs 500
+# python run_ff.py --mode "train" --model_name "fast_kan" --layers "1,1" --func "func1" --epochs 500
 
-# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "selu" --num_grids 8
+# python run_ff.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "selu" --num_grids 8
 
 
-# python run_ff2.py --mode "train" --model_name "mlp" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "selu" --num_grids 8
+# python run_ff.py --mode "train" --model_name "mlp" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "selu" --num_grids 8
 
 # 2D
-# python run_ff2.py --mode "train" --model_name "mlp" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "selu" --num_grids 16
+# python run_ff.py --mode "train" --model_name "mlp" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "sech_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "selu" --num_grids 16
 
 # 3D
-# python run_ff2.py --mode "train" --model_name "mlp" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "selu" --num_grids 32
+# python run_ff.py --mode "train" --model_name "mlp" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "relu_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "sech_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "selu" --num_grids 32
 
 # 4D
-# python run_ff2.py --mode "train" --model_name "mlp" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu"
-# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "selu" --num_grids 8
+# python run_ff.py --mode "train" --model_name "mlp" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "relu_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu"
+# python run_ff.py --mode "train" --model_name "sech_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "selu" --num_grids 8
+
