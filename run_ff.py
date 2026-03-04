@@ -3,12 +3,9 @@ import matplotlib.pyplot as plt
 from models import (
     EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN,
     SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN,
-    RationalKAN, RBF_KAN
+    RationalKAN, RBF_KAN, SechKAN
 )
-
-# SechKAN: will be updated
 import torch
-
 import numpy as np
 import time
 from utils import *
@@ -70,12 +67,10 @@ def train(args):
         model = PRKAN(args.layers, norm_type='')
     elif args.model_name == 'af_kan':
         model = AF_KAN(args.layers, norm_type='')
+    elif args.model_name == 'sech_kan':
+        model = SechKAN(args.layers, norm_type = 'mm', base_activation = args.base_activation, use_width = True, first_layer_norm = False, num_grids = args.num_grids)
     else:
         raise ValueError(f"The model '{args.model_name}' is not supported.")
-    # SechKAN: will be updated
-    '''elif args.model_name == 'sech_kan':
-        model = SechKAN(args.layers, norm_type='mm', base_activation=args.base_activation, first_layer_norm = True, num_grids = args.num_grids)'''
-    
 
     # Move model to device
     model = model.to(device)
@@ -156,20 +151,23 @@ def train(args):
     print('--------------------------------------')
    
     data_dict = {}
-    unix_time = time.perf_counter()
-    readable_time = datetime.fromtimestamp(unix_time).strftime("%d-%m-%Y %H:%M:%S")
-    data_dict['time'] = readable_time
+    data_dict['time'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
     data_dict['model_name'] = args.model_name
     data_dict['function'] = args.func
     data_dict['loss'] =   f"{losses[-1]:.2e}"
     data_dict['used_params'] = used_params
     data_dict['run_time'] = run_time
-   
-    if (args.model_name == 'ms_kan'):
+    data_dict['seed'] = args.seed
+    
+
+    if (args.model_name == 'sech_kan'):
+        data_dict['base_activation'] =  args.base_activation
+        data_dict['num_grids'] =  args.num_grids 
+    '''if (args.model_name == 'ms_kan'):
         data_dict['order'] =  args.orders
-        data_dict['grids'] =  args.grids
-   
+        data_dict['grids'] =  args.grids'''
+        
     # append to the result file
     output_path = 'output/function_fitting/'
     Path(output_path).mkdir(parents=True, exist_ok=True)
@@ -208,30 +206,25 @@ if __name__ == '__main__':
     main(args)
 
 # 1D
-# python run_ff.py --mode "train" --model_name "mlp" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu"
+# python run_ff2.py --mode "train" --model_name "mlp" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "selu" --num_grids 8 --seed 42
 
-# python run_ff.py --mode "train" --model_name "fast_kan" --layers "1,1" --func "func1" --epochs 500
-
-# python run_ff.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "selu" --num_grids 8
-
-
-# python run_ff.py --mode "train" --model_name "mlp" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "selu" --num_grids 8
+# python run_ff2.py --mode "train" --model_name "mlp" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "selu" --num_grids 8 --seed 42
 
 # 2D
-# python run_ff.py --mode "train" --model_name "mlp" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "sech_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "selu" --num_grids 16
+# python run_ff2.py --mode "train" --model_name "mlp" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "selu" --num_grids 8 --seed 42
 
 # 3D
-# python run_ff.py --mode "train" --model_name "mlp" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "relu_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "sech_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "selu" --num_grids 32
+# python run_ff2.py --mode "train" --model_name "mlp" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "3,2,1" --func "func4" --epochs 500 --base_activation "selu" --num_grids 16 --seed 42
 
 # 4D
-# python run_ff.py --mode "train" --model_name "mlp" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "relu_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu"
-# python run_ff.py --mode "train" --model_name "sech_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "selu" --num_grids 8
-
+# python run_ff2.py --mode "train" --model_name "mlp" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "relu_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu" --seed 42
+# python run_ff2.py --mode "train" --model_name "sech_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "selu" --num_grids 8 --seed 42
