@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from models import (
     EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN,
     SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN,
-    RationalKAN, RBF_KAN, SechKAN
+    RationalKAN, RBF_KAN
 )
 import torch
 import numpy as np
@@ -228,3 +228,4 @@ if __name__ == '__main__':
 # python run_ff2.py --mode "train" --model_name "mlp" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu" --seed 42
 # python run_ff2.py --mode "train" --model_name "relu_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "relu" --seed 42
 # python run_ff2.py --mode "train" --model_name "sech_kan" --layers "4,2,1" --func "func5" --epochs 500 --base_activation "selu" --num_grids 8 --seed 42
+
