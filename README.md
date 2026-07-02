@@ -1,10 +1,11 @@
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-RationalKAN-<blue>)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0%2B-red?logo=pytorch&logoColor=white) ![Badge](https://img.shields.io/badge/Newest-DBG-KAN-<blue>)
 
 <p align="center">
 <img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="400" />
 </p>
 
 # News
+- **2 July, 2026**: Add DGB-KAN (Decoupled Gated Basis Kolmogorov-Arnold Network)
 - **8-9 Mar, 2025**: Created AF-KAN, and updated ReLU-KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN.
 - **23 Mar, 2025**: Update function fitting (run_ff.py) and code.
 
