@@ -17,8 +17,10 @@ from .knots_kan import KnotsKAN
 from .rational_kan import RationalKAN
 from .rbf_kan import RBF_KAN
 
+from .dbg_kan import DBG_KAN
+
 #from .functions import lsin, lcos, larctan, lrelu, lleaky_relu, lswish, lmish, lsoftplus, lhard_sigmoid, lelu, lshifted_softplus, lgelup
 # "lsin", "lcos", "larctan", "lrelu", "lleaky_relu", "lswish", "lmish", "lsoftplus", "lhard_sigmoid", "lelu", "lshifted_softplus", "lgelup"
 
-__all__ = ["EfficientKAN", "EfficientKANLinear", "FastKAN", "FasterKAN", "BSRBF_KAN", "GottliebKAN", "MLP", "FC_KAN", "SKAN", "PRKAN", "ReLUKAN", "AF_KAN", "ChebyKAN", "KnotsKAN", "FourierKAN", "RationalKAN", "RBF_KAN"]
+__all__ = ["EfficientKAN", "EfficientKANLinear", "FastKAN", "FasterKAN", "BSRBF_KAN", "GottliebKAN", "MLP", "FC_KAN", "SKAN", "PRKAN", "ReLUKAN", "AF_KAN", "ChebyKAN", "KnotsKAN", "FourierKAN", "RationalKAN", "RBF_KAN", "DBG_KAN"]
 
