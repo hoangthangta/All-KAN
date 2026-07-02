@@ -274,11 +274,13 @@ You can cite these papers.
 ```
 
 ```
-@article{ta2024fc,
-  title={FC-KAN: Function Combinations in Kolmogorov-Arnold Networks},
+@article{ta2026fc,
+  title={Fc-kan: Function combinations in kolmogorov-arnold networks},
   author={Ta, Hoang-Thang and Thai, Duy-Quy and Rahman, Abu Bakar Siddiqur and Sidorov, Grigori and Gelbukh, Alexander},
-  journal={arXiv preprint arXiv:2409.01763},
-  year={2024}
+  journal={Information Sciences},
+  pages={123103},
+  year={2026},
+  publisher={Elsevier}
 }
 ```
 
