@@ -28,7 +28,7 @@ from storage import *
 from models import (
     EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN,
     SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN,
-    RationalKAN, RBF_KAN
+    RationalKAN, RBF_KAN, DBG_KAN
 )
 
 # MNIST: Mean=0.1307, Std=0.3081
@@ -38,17 +38,20 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
     ])
     
-# CIFAR10
+# CIFAR10/CIFAR100
 transform_cifar = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
-    
-'''transform_cifar_test = transforms.Compose([
-    transforms.Grayscale(num_output_channels=1),  # Convert (32,32,3) -> (32,32,1)
-    transforms.ToTensor(),  
-    transforms.Normalize((0.5), (0.5))  
-    ])'''
+
+# SVHN
+transform_svhn = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(
+        (0.4377, 0.4438, 0.4728),
+        (0.1980, 0.2010, 0.1970)
+    )
+])
 
 # Omniglot
 transform_omniglot = transforms.Compose([
@@ -66,11 +69,8 @@ def convert_to_tensors(dataset):
         labels.append(label)
     return torch.tensor(images, dtype=torch.float32).unsqueeze(1), torch.tensor(labels)
     
-    
 def run(args):
-    
-    
-    
+   
     trainset, valset = [], []
     if (args.ds_name == 'mnist'):
         trainset = torchvision.datasets.MNIST(
@@ -124,6 +124,17 @@ def run(args):
         valset = torchvision.datasets.CIFAR10(
             root="./data", train=False, download=True, transform=transform_cifar
         )
+    elif(args.ds_name == 'cifar100'):
+        trainset = torchvision.datasets.CIFAR100(
+            root='./data', train=True, download=True, transform=transform_cifar
+        )
+        valset = torchvision.datasets.CIFAR100(
+            root="./data", train=False, download=True, transform=transform_cifar
+    )
+    elif(args.ds_name == 'svhn'):
+        trainset = torchvision.datasets.SVHN(root="./data", split="train", download=True, transform=transform_svhn)
+
+        valset = torchvision.datasets.SVHN(root="./data", split="test", download=True,transform=transform_svhn)
         
     # add other datasets here
     '''elif(args.ds_name == 'omniglot'):
@@ -153,7 +164,8 @@ def run(args):
         else:
             print('args.n_part is too small!')
             return
-
+    
+    print('dataset: ', args.ds_name)
     print('trainset: ', len(trainset))
     print('valset: ', len(valset))
     
@@ -206,6 +218,8 @@ def run(args):
         model = RationalKAN(args.layers, P_order = args.p_order, Q_order = args.q_order, groups = args.groups) 
     elif(args.model_name == 'rbf_kan'):
         model = RBF_KAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order) 
+    elif(args.model_name == 'dbg_kan'):
+        model = DBG_KAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order, base_activation = args.base_activation, norm_type = args.norm_type, basis_type=args.basis_type, gate_type = args.gate_type, use_base_update = args.use_base_update)    
     else:
         # add other KANs here
         raise ValueError("Unsupported network type.")
@@ -250,10 +264,13 @@ def run(args):
         train_accuracy, train_loss = 0, 0
         with tqdm(trainloader) as pbar:
             for i, (images, labels) in enumerate(pbar):
+                
+                if (args.model_name not in ['small_mskan_cnn', 'sech_kan_cnn']):
+                    images = images.view(-1, args.layers[0]).to(device)
 
-                images = images.view(-1, args.layers[0]).to(device)
                 optimizer.zero_grad()
                 output = model(images.to(device))
+                
                 loss = criterion(output, labels.to(device))
                 train_loss += loss.item()
                 loss.backward()
@@ -288,7 +305,8 @@ def run(args):
         y_pred = []
         with torch.no_grad():
             for images, labels in valloader:
-                images = images.view(-1, args.layers[0]).to(device)
+                if (args.model_name not in ['small_mskan_cnn', 'sech_kan_cnn']):
+                    images = images.view(-1, args.layers[0]).to(device)
                 output = model(images.to(device))
                 val_loss += criterion(output, labels.to(device)).item()
                 y_pred += output.argmax(dim=1).tolist()
@@ -321,8 +339,12 @@ def run(args):
             y_pred_test = []
             with torch.no_grad():
                 for images, labels in testloader:
+                    
+                    #if (args.ds_name != 'cal_si'):
+                    #    images = images.view(-1, args.layers[0]).to(device)
                     images = images.view(-1, args.layers[0]).to(device)
                     output = model(images.to(device))
+                    
                     test_loss += criterion(output, labels.to(device)).item()
                     y_pred_test += output.argmax(dim=1).tolist()
                     test_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
@@ -349,31 +371,33 @@ def run(args):
     
     
     end = time.time()
+    
+    print('best_epoch: ', best_epoch)
+    print('best_accuracy: ', best_accuracy) 
     print(f"Training time (s): {end-start}")
     
     # Plot gradient flow over epochs
-    plt.plot(grad_history)
+    '''plt.plot(grad_history)
     plt.xlabel("Epochs")
     plt.ylabel("Mean Gradient Norm")
     plt.title("Gradient Flow Over Training")
-    plt.show()
+    plt.show()'''
 
-    # # Calculate parameters
-    # remove unused parameters and count the number of parameters after that
+    # Remove unused parameters and count the number of parameters after that
     remove_unused_params(model)
     torch.save(model, output_path + '/' + saved_model_name)
-    count_params(model)
+    used_params = count_params(model)
     
-    model = copy.deepcopy(model).cpu() # for more correct count
+    '''model = copy.deepcopy(model).cpu() # for more correct count
     # Calculate FLOPs
-    flops, _ = get_model_complexity_info(model, (args.layers[0],), as_strings=True, print_per_layer_stat=True)
-    print(f"FLOPs: {flops}")
-    write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start, 'flops':str(flops)}, file_access = 'a')
+    flops, _ = get_model_complexity_info(model, (args.layers[0],), as_strings=True, print_per_layer_stat=True)'''
+    
+    write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start, 'used_params':used_params}, file_access = 'a')
     
 
 def predict_set(args):
     """
-        Predict a given dataset using a trained model.
+        Predict a given dataset (only MNIST and Fashion-MNIST) using a trained model.
     """
     
     # Load the model
@@ -499,7 +523,9 @@ def main(args):
     
 if __name__ == "__main__":
     
-    '''import torch
+    '''
+    # Calculate FLOPs
+    import torch
     from fvcore.nn import FlopCountAnalysis
 
     # Assuming FC_KAN is your model
@@ -519,6 +545,8 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--layers', type=str, default="784,64,10")
     
+    parser.add_argument('--seed', type=int, default=42)
+    
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--model_path', type=str, default='output/model.pth')
     parser.add_argument('--grid_size', type=int, default=5)
@@ -533,6 +561,16 @@ if __name__ == "__main__":
     
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
     parser.add_argument('--wc', type=float, default=1e-4, help='Weight decay')
+
+    # MSKAN   
+    parser.add_argument('--grids', type=str, default='1,4', help='Grid sizes for MSKAN')
+    parser.add_argument('--orders', type=str, default='3,3', help='Spline orders for MSKAN')
+    parser.add_argument('--norm1_type', type=str, default='l2mm', help='Norm 1 type for MSKAN')
+    parser.add_argument('--norm2_type', type=str, default='', help='Norm 2 type for MSKAN')
+    
+    #parser.add_argument('--residual', action='store_true', help='Enable residual for MSKAN')
+    #parser.add_argument('--shared_phases', action='store_true', help='Enable shared phases for MSKAN')
+
 
     # SKAN
     parser.add_argument('--basis_function', type=str, default='sin')
@@ -557,6 +595,21 @@ if __name__ == "__main__":
     
     # MLP
     parser.add_argument('--use_attn', type=int, default=0, help='Attention mechanism')
+    
+    # MSKAN
+    parser.add_argument('--classifier_type', type=str, default='mlp')
+    
+    # Small_MSKAN_CNN + CNN + SechKAN_CNN
+    parser.add_argument('--hidden_size', type=int, default=64)
+    
+    parser.add_argument('--out_channel', type=int, default=32)
+    parser.add_argument('--middle_channel', type=int, default=64)
+ 
+    # DBG_KAN
+    parser.add_argument('--basis_type', type=str, default='both') # b_spline, rbf, or both
+    parser.add_argument('--gate_type', type=str, default='shared_head')
+    parser.add_argument('--use_base_update', action='store_true')
+        
     args = parser.parse_args()
     
     # ReLUKAN
@@ -570,9 +623,35 @@ if __name__ == "__main__":
     if (args.device == 'cuda'): # check available
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
+    seed = args.seed
+    print('Device: ', device)
+    print('Seed: ', seed)
+    set_seed(seed, device)
+    
     main(args)
-
+    
+    
 # Some examples
+
+# python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --base_activation "silu" --norm_type "layer" --basis_type "b_spline" --gate_type "coupled" --ds_name "mnist" --scheduler "OneCycleLR"
+
+# python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --base_activation "silu" --norm_type "layer" --basis_type "rbf" --gate_type "coupled" --ds_name "fashion_mnist" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10" --base_activation "silu" --norm_type "layer" --basis_type "rbf" --gate_type "coupled" --scheduler "OneCycleLR" --seed 0
+
+#python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "svhn" --base_activation "silu" --norm_type "layer" --basis_type "rbf" --gate_type "coupled" --scheduler "OneCycleLR" --seed 0
+
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --layers "3072,64,100" --ds_name "svhn" --note "full" --scheduler "OneCycleLR"
+
+#use_base_update
+
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
+
+# python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 16 --layers "3072,16,100" --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --layers "3072,16,100" --ds_name "cifar100" --note "full" --scheduler "OneCycleLR"
+
+
 #python run.py --mode "train" --model_name "fc_kan" --epochs 1 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic"
 
 #python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "mnist"
@@ -595,7 +674,7 @@ if __name__ == "__main__":
 
 #python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "gelu" --methods "global_attn," --combined_type "sum_product"
 
-#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "silu" --methods "global_attn" --func "quad1"
+#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "golu" --methods "global_attn" --func "quad1"
 
 #python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --layers "784,392,102" --ds_name "cal_si" --note "full"
 
@@ -633,10 +712,19 @@ if __name__ == "__main__":
 
 # python run.py --mode "train" --model_name "fc_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic" --scheduler "OneCycleLR"
 
-#python run.py --mode "train" --model_name "mlp" --epochs 5 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --scheduler "OneCycleLR"
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --scheduler "OneCycleLR"
 
 #python run.py --mode "train" --model_name "bsrbf_kan" --epochs 5 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
 
 #python run.py --mode "train" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --layers "784,392,102" --grid_size 5 --spline_order 3 --ds_name "cal_si" --scheduler "CyclicLR"
 
 # python run.py --mode "train" --model_name "fc_kan" --epochs 10 --batch_size 64 --layers "784,392,102" --ds_name "cal_si" --func_list "bs,dog" --combined_type "quadratic" --scheduler "OneCycleLR"
+
+#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --scheduler "OneCycleLR" --base_activation "silu" --norm_type "layer" --n_part 0.1 --note data_0.1
+
+# python run.py --mode "train" --model_name "bsrbf_kan" --epochs 5 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
+
+
+
+
+
