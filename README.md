@@ -110,7 +110,18 @@ You can open a pull to add your KANs in this section.
 * *func*: function types used for fitting, check run_ff.py to see all functions.
 * *epochs*: the number of epochs.
 
-## Commands
+## Commands for Function Fitting (run_ff.py)
+Some examples:
+```
+python run_ff.py --mode "train" --model_name "mlp"      --layers "1,1" --func "func1" --epochs 500 --base_activation "relu" --seed 42
+python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func1" --epochs 500 --base_activation "relu" --seed 42
+python run_ff.py --mode "train" --model_name "mlp"      --layers "1,1" --func "func2" --epochs 500 --base_activation "relu" --seed 42
+python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu" --seed 42
+python run_ff.py --mode "train" --model_name "mlp"      --layers "2,1" --func "func3" --epochs 500 --base_activation "relu" --seed 42
+python run_ff.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3_2d" --epochs 500 --base_activation "relu" --seed 42
+```
+
+## Commands for Image Classification (run.py)
 ### BSRBF-KAN, FastKAN, FasterKAN, GottliebKAN, and MLP
 For BSRBF-KAN, also see: https://github.com/hoangthangta/BSRBF_KAN.
 <details>
