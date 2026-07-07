@@ -118,7 +118,7 @@ python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "f
 python run_ff.py --mode "train" --model_name "mlp"      --layers "1,1" --func "func2" --epochs 500 --base_activation "relu" --seed 42
 python run_ff.py --mode "train" --model_name "relu_kan" --layers "1,1" --func "func2" --epochs 500 --base_activation "relu" --seed 42
 python run_ff.py --mode "train" --model_name "mlp"      --layers "2,1" --func "func3" --epochs 500 --base_activation "relu" --seed 42
-python run_ff.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3_2d" --epochs 500 --base_activation "relu" --seed 42
+python run_ff.py --mode "train" --model_name "relu_kan" --layers "2,1" --func "func3" --epochs 500 --base_activation "relu" --seed 42
 ```
 
 ## Commands for Image Classification (run.py)
