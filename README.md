@@ -302,10 +302,12 @@ You can cite these papers.
 ```
 
 ```
-@article{ta2024bsrbf,
-  title={BSRBF-KAN: A combination of B-splines and Radial Basis Functions in Kolmogorov-Arnold Networks},
+@inproceedings{ta2024bsrbf,
+  title={BSRBF-KAN: A combination of B-splines and radial basis functions in Kolmogorov-Arnold networks},
   author={Ta, Hoang-Thang},
-  journal={arXiv preprint arXiv:2406.11173},
-  year={2024}
+  booktitle={International Symposium on Information and Communication Technology},
+  pages={3--15},
+  year={2024},
+  organization={Springer}
 }
 ```
