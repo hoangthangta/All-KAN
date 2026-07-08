@@ -117,7 +117,6 @@ class SechKANLayer(nn.Module):
         self.output_dim = output_dim
         self.use_base_update = use_base_update
         self.num_grids = num_grids
-        
 
         # Normalization
         self.norm1 = self._get_norm(norm1_type, input_dim)
@@ -141,8 +140,6 @@ class SechKANLayer(nn.Module):
         self.value_head = nn.Linear(output_dim, 1, bias=True)
         self.gate_head  = nn.Linear(output_dim, 1, bias=True)
         self.head = nn.Linear(output_dim, 2, bias=True)
-        
-        
 
         # Project features -> output_dim
         self.base_linear = nn.Linear(input_dim, output_dim, bias=True)
@@ -173,22 +170,6 @@ class SechKANLayer(nn.Module):
         x = self.norm1(x)
       
         spline_basis = self.sbf(x)  # (B, input_dim, G)
-       
-        '''
-        shared = self.shared_linear(spline_basis)                   # (B, input_dim, hidden_dim)
-        sb_proj = self.value_head(shared).squeeze(-1)               # (B, input_dim)
-        gate = torch.sigmoid(self.gate_head(shared).squeeze(-1))    # (B, input_dim)
-        sb_out = sb_proj * gate                                     # (B, input_dim)
-        '''
-
-        
-        '''shared = self.shared_linear(spline_basis)       # (B, input_dim, hidden_dim)
-        out = self.head(shared)                         # (B, input_dim, 2)
-        sb_proj = out[..., 0]                           # (B, input_dim)
-        gate    = torch.sigmoid(out[..., 1])            # (B, input_dim)
-        sb_out  = sb_proj * gate                        # (B, input_dim)'''
-        
-        
 
         sb_out = self.grid_linear(spline_basis).squeeze(-1)
         
