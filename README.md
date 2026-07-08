@@ -5,6 +5,7 @@
 </p>
 
 # News
+- **8 July, 2026**: Add SechKAN (Sechkan: Kolmogorov–Arnold Networks with Hyperbolic Secant Functions)
 - **2 July, 2026**: Add DGB-KAN (Decoupled Gated Basis Kolmogorov-Arnold Network)
 - **8-9 Mar, 2025**: Created AF-KAN, and updated ReLU-KAN, ChebyKAN, FourierKAN, KnotsKAN, RationalKAN, RBF_KAN.
 - **23 Mar, 2025**: Update function fitting (run_ff.py) and code.
