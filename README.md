@@ -4,6 +4,11 @@
 <img src="https://github.com/hoangthangta/All-KAN/blob/main/All_KAN.png" width="400" />
 </p>
 
+# Paper Under Review
+
+- **SechKAN: Kolmogorov–Arnold Networks with Hyperbolic Secant Functions**
+- **Guidelines:** https://github.com/hoangthangta/All-KAN/tree/main/SechKAN
+
 # News
 - **8 July, 2026**: Add SechKAN (Sechkan: Kolmogorov–Arnold Networks with Hyperbolic Secant Functions)
 - **2 July, 2026**: Add DGB-KAN (Decoupled Gated Basis Kolmogorov-Arnold Network)
