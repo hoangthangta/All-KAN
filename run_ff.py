@@ -16,32 +16,26 @@ from utils import *
 from file_io import *
 
 # Function 1: Localized oscillation (Gaussian envelope + medium frequency)
-# Tests: ability to model smooth, localized patterns
 def function1(x):
     return torch.exp(-4 * x**2) * torch.sin(6 * torch.pi * x)
 
 # Function 2: Warped oscillation (input-dependent frequency)
-# Tests: handling of non-uniform frequency / nonlinear phase distortion
 def function2(x):
     return torch.sin(4 * torch.pi * x**2) * torch.cos(2 * torch.pi * x)
 
 # Function 3: 2D anisotropic structure (different behavior per dimension)
-# Tests: separability and dimension-wise frequency variation
 def function3_2d(x1, x2):
     return torch.sin(3 * torch.pi * x1**2) * torch.cos(3 * torch.pi * x2)
 
 # Function 4: Localized + nonlinear interaction (3D)
-# Tests: coupling between variables and spatial decay
 def function4_3d(x1, x2, x3):
     return torch.exp(-3 * (x1**2 + x2**2)) * torch.sin(4 * torch.pi * x3 + x1 * x2)
 
 # Function 5: High-dimensional coupled nonlinear structure (4D)
-# Tests: complex variable interactions and compositional structure
 def function5_4d(x1, x2, x3, x4):
     return torch.sin(3 * torch.pi * (x1 * x2 + x3)) * torch.cos(2 * torch.pi * (x2 * x4))
 
 # Function 6: Non-smooth oscillation (kink at x = 0)
-# Tests: ability to approximate non-differentiable points
 def function6(x):
     return torch.abs(x) * torch.sin(3 * torch.pi * x)
 
