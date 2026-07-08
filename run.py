@@ -28,7 +28,7 @@ from storage import *
 from models import (
     EfficientKAN, FastKAN, BSRBF_KAN, FasterKAN, MLP, FC_KAN, GottliebKAN,
     SKAN, PRKAN, ReLUKAN, AF_KAN, ChebyKAN, FourierKAN, KnotsKAN,
-    RationalKAN, RBF_KAN, DBG_KAN
+    RationalKAN, RBF_KAN, SechKAN, SechKAN_CNN, DBG_KAN
 )
 
 # MNIST: Mean=0.1307, Std=0.3081
@@ -218,8 +218,25 @@ def run(args):
         model = RationalKAN(args.layers, P_order = args.p_order, Q_order = args.q_order, groups = args.groups) 
     elif(args.model_name == 'rbf_kan'):
         model = RBF_KAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order) 
+        
     elif(args.model_name == 'dbg_kan'):
         model = DBG_KAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order, base_activation = args.base_activation, norm_type = args.norm_type, basis_type=args.basis_type, gate_type = args.gate_type, use_base_update = args.use_base_update)    
+    elif(args.model_name == 'sech_kan'):
+        model = SechKAN(args.layers, norm1_type=args.norm1_type, norm2_type = args.norm2_type, base_activation=args.base_activation, use_width = False, norm_mode = "all", num_grids = args.num_grids) 
+    elif(args.model_name == 'sech_kan_cnn'):
+        
+        if (args.ds_name in ['cifar10', 'cifar100']):
+            data_width = data_height = 32
+            in_channel = 3
+        else:
+            data_width = data_height = 28
+            in_channel = 1
+        
+        if (args.ds_name == 'cifar100'): num_classes = 100
+        elif (args.ds_name == 'cal_si'): num_classes = 102
+        else: num_classes = 10
+
+        model = SechKAN_CNN(data_width, data_height, in_channel,  middle_channel = args.middle_channel, out_channel = args.out_channel, num_classes=num_classes, classifier_type = args.classifier_type, base_activation = args.base_activation, hidden_size = args.hidden_size, num_grids = args.num_grids, norm1_type = args.norm1_type, norm2_type = args.norm2_type)          
     else:
         # add other KANs here
         raise ValueError("Unsupported network type.")
@@ -630,101 +647,4 @@ if __name__ == "__main__":
     
     main(args)
     
-    
-# Some examples
-
-# python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --base_activation "silu" --norm_type "layer" --basis_type "b_spline" --gate_type "coupled" --ds_name "mnist" --scheduler "OneCycleLR"
-
-# python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --base_activation "silu" --norm_type "layer" --basis_type "rbf" --gate_type "coupled" --ds_name "fashion_mnist" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10" --base_activation "silu" --norm_type "layer" --basis_type "rbf" --gate_type "coupled" --scheduler "OneCycleLR" --seed 0
-
-#python run.py --mode "train" --model_name "dbg_kan" --epochs 10 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "svhn" --base_activation "silu" --norm_type "layer" --basis_type "rbf" --gate_type "coupled" --scheduler "OneCycleLR" --seed 0
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --layers "3072,64,100" --ds_name "svhn" --note "full" --scheduler "OneCycleLR"
-
-#use_base_update
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
-
-# python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 16 --layers "3072,16,100" --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --layers "3072,16,100" --ds_name "cifar100" --note "full" --scheduler "OneCycleLR"
-
-
-#python run.py --mode "train" --model_name "fc_kan" --epochs 1 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic"
-
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "mnist"
-
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 1 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10"
-
-#python run.py --mode "train" --model_name "rbf_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --grid_size 5 --spline_order 3
-
-#python run.py --mode "train" --model_name "rational_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --p_order 3 --q_order 3 --groups 8
-
-#python run.py --mode "train" --model_name "knots_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 20 --spline_order 3 --ds_name "mnist"
-
-#python run.py --mode "train" --model_name "cheby_kan" --epochs 1 --batch_size 64 --layers "784,64,10" --spline_order 3 --ds_name "fashion_mnist"
-
-#python run.py --mode "train" --model_name "fourier_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "fashion_mnist"
-
-#python run.py --mode "train" --model_name "relu_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "relu"
-
-#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,392,102" --grid_size 3 --spline_order 3 --ds_name "cal_si" --norm_type "layer" --base_activation "gelu" --methods "function_linear"
-
-#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "gelu" --methods "global_attn," --combined_type "sum_product"
-
-#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "golu" --methods "global_attn" --func "quad1"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --layers "784,392,102" --ds_name "cal_si" --note "full"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
-
-# python run.py --mode "train" --model_name "mlp" --epochs 35 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --norm_type "layer" --base_activation "silu"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 25 --batch_size 64 --layers "784,392,102" --ds_name "cal_si" --note "full" --norm_type "layer" --base_activation "silu"
-
-#python run.py --mode "train" --model_name "efficient_kan" --epochs 1 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "mnist"
-
-#python run.py --mode "train" --model_name "skan" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --basis_function "sin"
-
-#python run.py --mode "train" --model_name "fast_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --num_grids 8 --ds_name "mnist"
-
-#python run.py --mode "train" --model_name "faster_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --num_grids 8 --ds_name "mnist"
-
-#python run.py --mode "train" --model_name "gottlieb_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --spline_order 3 --ds_name "mnist"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 16 --layers "784,392,102" --ds_name "cifar10" --note "full"
-
-# python run.py --mode "train" --model_name "prkan" --epochs 25 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --grid_size 5 --spline_order 3 --num_grids 8 --func "rbf" --norm_type "" --base_activation "silu" --methods "conv2d" --combined_type "product"
-
-#python run.py --mode "predict_set" --model_name "bsrbf_kan" --model_path='papers//BSRBF-KAN//bsrbf_paper//mnist//bsrbf_kan//bsrbf_kan__mnist__full_0.pth' --ds_name "mnist" --batch_size 64
-
-# python run.py --mode "train" --model_name "prkan" --epochs 1 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2 --scheduler "ExponentialLR" --lr 5e-7 
-
-# python run.py --mode "train" --model_name "prkan" --epochs 15 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full_0" --n_part 0 --func "rbf" --base_activation "silu" --methods "attention" --norm_type "layer" --norm_pos 2 --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "af_kan" --epochs 25 --batch_size 64 --layers "784,64,10" --grid_size 3 --spline_order 3 --ds_name "mnist" --norm_type "layer" --base_activation "silu" --methods "global_attn" --func "quad1" --scheduler "OneCycleLR"
-
-# python run.py --mode "train" --model_name "bsrbf_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --grid_size 5 --spline_order 3 --ds_name "mnist" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "rational_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --p_order 3 --q_order 3 --groups 8 --scheduler "OneCycleLR"
-
-# python run.py --mode "train" --model_name "fc_kan" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --func_list "bs,dog" --combined_type "quadratic" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --note "full" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 5 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "bsrbf_kan" --epochs 25 --batch_size 64 --layers "784,392,102" --grid_size 5 --spline_order 3 --ds_name "cal_si" --scheduler "CyclicLR"
-
-# python run.py --mode "train" --model_name "fc_kan" --epochs 10 --batch_size 64 --layers "784,392,102" --ds_name "cal_si" --func_list "bs,dog" --combined_type "quadratic" --scheduler "OneCycleLR"
-
-#python run.py --mode "train" --model_name "mlp" --epochs 10 --batch_size 64 --layers "784,64,10" --ds_name "mnist" --scheduler "OneCycleLR" --base_activation "silu" --norm_type "layer" --n_part 0.1 --note data_0.1
-
-# python run.py --mode "train" --model_name "bsrbf_kan" --epochs 5 --batch_size 16 --layers "3072,64,10" --grid_size 5 --spline_order 3 --ds_name "cifar10" --scheduler "OneCycleLR"
-
-
-
-
 
