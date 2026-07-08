@@ -29,34 +29,6 @@ class MMNorm(nn.Module):
         x_norm = x_norm * (self.grid_max - self.grid_min) + self.grid_min
         return x_norm
 
-
-class StableGrid(nn.Module):
-    def __init__(self, num_grids, grid_min=-2, grid_max=2):
-        super().__init__()
-
-        self.num_grids = num_grids
-        self.grid_min = grid_min
-        self.grid_max = grid_max
-
-        # learn spacing (positive)
-        self.delta_raw = nn.Parameter(torch.randn(num_grids))
-
-    def forward(self):
-        # positive increments -> monotonic
-        delta = F.softplus(self.delta_raw)
-
-        # cumulative -> increasing
-        grid = torch.cumsum(delta, dim=0)
-
-        # normalize to [0,1]
-        grid = grid - grid.min()
-        grid = grid / (grid.max() + 1e-8)
-
-        # scale to [grid_min, grid_max]
-        grid = self.grid_min + (self.grid_max - self.grid_min) * grid
-
-        return grid
-
 class SechBasisFunction(nn.Module):
     def __init__(
         self,
@@ -78,8 +50,6 @@ class SechBasisFunction(nn.Module):
 
         grid = torch.linspace(grid_min, grid_max, num_grids)
         self.grid = nn.Parameter(grid, requires_grad=True)
-        
-        #self.grid = StableGrid(num_grids, grid_min, grid_max)
      
         if use_width:
             if width is None:
