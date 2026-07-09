@@ -1,6 +1,9 @@
 import torch
 from prettytable import PrettyTable
 
+import random
+import numpy as np
+
 def cal_grad_mean(model):
     grad_mean = torch.mean(torch.stack([p.grad.abs().mean() for p in model.parameters() if p.grad is not None]))
     return grad_mean
@@ -40,7 +43,8 @@ def count_params(model, display = True):
         print(f"Total Trainable Params: {total_params}")
         print(f"Total Number of Used Parameters: {used_params}")
 
-    return total_params
+    return used_params
+   
 
 def count_unused_params(model):
     """
@@ -65,3 +69,16 @@ def remove_unused_params(model):
         if hasattr(model, name):
             delattr(model, name)  # Dynamically remove the unused layer
     return model
+    
+    
+def set_seed(seed : int = 42, device = 'cuda'):
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    if device == 'cuda':
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        torch.use_deterministic_algorithms(True, warn_only=True)
