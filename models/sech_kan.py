@@ -135,15 +135,9 @@ class SechKANLayer(nn.Module):
         #nn.init.kaiming_uniform_(self.grid_linear.weight, a=math.sqrt(5))
         #nn.init.uniform_(self.grid_linear.weight, -spline_weight_init_scale, spline_weight_init_scale)
         #nn.init.zeros_(self.grid_linear.bias)
-        
-        self.shared_linear = nn.Linear(num_grids, output_dim, bias=True)
-        self.value_head = nn.Linear(output_dim, 1, bias=True)
-        self.gate_head  = nn.Linear(output_dim, 1, bias=True)
-        self.head = nn.Linear(output_dim, 2, bias=True)
 
         # Project features -> output_dim
         self.base_linear = nn.Linear(input_dim, output_dim, bias=True)
-        
         
         # Activation
         if base_activation in [None, "none", "identity", ""]:
