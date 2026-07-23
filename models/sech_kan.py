@@ -29,6 +29,35 @@ class MMNorm(nn.Module):
         x_norm = x_norm * (self.grid_max - self.grid_min) + self.grid_min
         return x_norm
 
+
+'''class StableGrid(nn.Module):
+    def __init__(self, num_grids, grid_min=-2, grid_max=2):
+        super().__init__()
+
+        self.num_grids = num_grids
+        self.grid_min = grid_min
+        self.grid_max = grid_max
+
+        # learn spacing (positive)
+        self.delta_raw = nn.Parameter(torch.randn(num_grids))
+
+    def forward(self):
+        # positive increments -> monotonic
+        delta = F.softplus(self.delta_raw)
+
+        # cumulative -> increasing
+        grid = torch.cumsum(delta, dim=0)
+
+        # normalize to [0,1]
+        grid = grid - grid.min()
+        grid = grid / (grid.max() + 1e-8)
+
+        # scale to [grid_min, grid_max]
+        grid = self.grid_min + (self.grid_max - self.grid_min) * grid
+
+        return grid
+'''
+
 class SechBasisFunction(nn.Module):
     def __init__(
         self,
@@ -50,6 +79,8 @@ class SechBasisFunction(nn.Module):
 
         grid = torch.linspace(grid_min, grid_max, num_grids)
         self.grid = nn.Parameter(grid, requires_grad=True)
+        
+        #self.grid = StableGrid(num_grids, grid_min, grid_max)
      
         if use_width:
             if width is None:
@@ -79,7 +110,7 @@ class SechBasisFunction(nn.Module):
 
 
 class SechKANLayer(nn.Module):
-    """Sech-based KAN transform layer projecting (B, input_dim) → (B, output_dim)."""
+    """Sech-based KAN transform layer projecting (B, input_dim) -> (B, output_dim)."""
     
     activation_fns = {
         "softplus": F.softplus,
@@ -117,7 +148,7 @@ class SechKANLayer(nn.Module):
         self.output_dim = output_dim
         self.use_base_update = use_base_update
         self.num_grids = num_grids
-
+        
         # Normalization
         self.norm1 = self._get_norm(norm1_type, input_dim)
         self.norm2 = self._get_norm(norm2_type, input_dim)
@@ -135,7 +166,7 @@ class SechKANLayer(nn.Module):
         #nn.init.kaiming_uniform_(self.grid_linear.weight, a=math.sqrt(5))
         #nn.init.uniform_(self.grid_linear.weight, -spline_weight_init_scale, spline_weight_init_scale)
         #nn.init.zeros_(self.grid_linear.bias)
-
+        
         # Project features -> output_dim
         self.base_linear = nn.Linear(input_dim, output_dim, bias=True)
         
@@ -176,6 +207,99 @@ class SechKANLayer(nn.Module):
         return ret
 
 
+class SechKANNoProjectionLayer(nn.Module):
+    """SechKAN layer without the intermediate 1D projection."""
+    
+    activation_fns = {
+        "softplus": F.softplus,
+        "sigmoid": torch.sigmoid,
+        "silu": F.silu,
+        "relu": F.relu,
+        "leaky_relu": F.leaky_relu,
+        "elu": F.elu,
+        "gelu": F.gelu,
+        "selu": F.selu,
+        "tanh": torch.tanh,
+    }
+    
+    def __init__(
+        self,
+        input_dim: int,
+        output_dim: int,
+        grid_min: float = -2.0,
+        grid_max: float = 2.0,
+        num_grids: int = 8,
+        norm1_type: str = "layer",
+        norm2_type: str = "layer",
+        base_activation: str = "silu",
+        use_base_update: bool = False,
+        spline_weight_init_scale: float = 0.1,
+        use_width: bool = False,
+    ):
+        super().__init__()
+        
+        # Store ranges for MMNorm if needed
+        self.grid_min = grid_min
+        self.grid_max = grid_max
+
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.use_base_update = use_base_update
+        self.num_grids = num_grids
+        
+
+        # Normalization
+        self.norm1 = self._get_norm(norm1_type, input_dim)
+        self.norm2 = self._get_norm(norm2_type, input_dim*num_grids)
+
+        # Sech bump basis
+        self.sbf = SechBasisFunction(grid_min, grid_max, num_grids, use_width = use_width)
+
+        # Project features -> output_dim
+        self.feature_linear = nn.Linear(input_dim*num_grids, output_dim, bias=True)
+        nn.init.kaiming_uniform_(self.feature_linear.weight, a=math.sqrt(3))
+        #nn.init.uniform_(self.feature_linear.weight, -spline_weight_init_scale, spline_weight_init_scale)
+        
+        # Project features -> output_dim
+        self.base_linear = nn.Linear(input_dim, output_dim, bias=True)
+        
+        # Activation
+        if base_activation in [None, "none", "identity", ""]:
+            self.base_activation = nn.Identity()
+        else:
+            if base_activation not in SechKANLayer.activation_fns:
+                raise ValueError(f"Unknown activation: {base_activation}")
+            self.base_activation = SechKANLayer.activation_fns[base_activation]
+
+    def _get_norm(self, norm_type: str, dim: int):
+        if norm_type == "layer":
+            return nn.LayerNorm(dim)
+        elif norm_type == "batch":
+            return nn.BatchNorm1d(dim)
+        elif norm_type == "mm":
+            return MMNorm(self.grid_min, self.grid_max)
+        elif norm_type == "rms":
+            return RMSNorm(dim)
+        else:
+            return nn.Identity()
+
+    def forward(self, x):
+        # x: (B, input_dim)
+        x = self.norm1(x) 
+        
+        spline_basis = self.sbf(x)  # (B, input_dim, G)
+        #spline_basis = spline_basis.reshape(spline_basis.size(0), -1) # (B, input_dim * G)
+        spline_basis = spline_basis.flatten(1)     # (B, input_dim * G)
+
+        spline_basis = self.norm2(spline_basis)
+        ret = self.feature_linear(self.base_activation(spline_basis))     # (B, output_dim)
+
+        
+        if self.use_base_update: 
+            ret = ret + self.base_linear(self.base_activation(x))
+            
+        return ret
+
 class SechKAN(nn.Module):
     """Stacked SechKAN model."""
     def __init__(
@@ -190,8 +314,9 @@ class SechKAN(nn.Module):
         norm1_type: str = "layer",
         norm2_type: str = "layer",
         norm_mode: str = "except_first",
-        use_width : bool = False
-    ):
+        use_width : bool = False,
+        net_type: str = 'standard' # no_1d_projection
+    ): 
         super().__init__()
         assert len(net_layers) >= 2
 
@@ -208,26 +333,46 @@ class SechKAN(nn.Module):
             else:
                 apply_norm = False  # no norm
 
-            self.layers.append(
-                SechKANLayer(
-                    input_dim=in_dim,
-                    output_dim=out_dim,
-                    grid_min=grid_min,
-                    grid_max=grid_max,
-                    num_grids=num_grids,
-                    norm1_type=norm1_type if apply_norm else "",
-                    norm2_type=norm2_type if apply_norm else "",
-                    base_activation=base_activation,
-                    use_base_update=use_base_update,
-                    spline_weight_init_scale=spline_weight_init_scale,
-                    use_width=use_width
+            if (net_type == 'standard'):
+                self.layers.append(
+                    SechKANLayer(
+                        input_dim=in_dim,
+                        output_dim=out_dim,
+                        grid_min=grid_min,
+                        grid_max=grid_max,
+                        num_grids=num_grids,
+                        norm1_type=norm1_type if apply_norm else "",
+                        norm2_type=norm2_type if apply_norm else "",
+                        base_activation=base_activation,
+                        use_base_update=use_base_update,
+                        spline_weight_init_scale=spline_weight_init_scale,
+                        use_width=use_width
+                    )
                 )
-            )
+            else:
+                self.layers.append(
+                    SechKANNoProjectionLayer(
+                        input_dim=in_dim,
+                        output_dim=out_dim,
+                        grid_min=grid_min,
+                        grid_max=grid_max,
+                        num_grids=num_grids,
+                        norm1_type=norm1_type if apply_norm else "",
+                        norm2_type=norm2_type if apply_norm else "",
+                        base_activation=base_activation,
+                        use_base_update=use_base_update,
+                        spline_weight_init_scale=spline_weight_init_scale,
+                        use_width=use_width
+                    )
+                ) 
 
     def forward(self, x: torch.Tensor):
         for layer in self.layers:
             x = layer(x)
         return x
+
+
+
 
 
 class SechKAN_CNN(nn.Module):
