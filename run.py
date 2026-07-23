@@ -60,7 +60,6 @@ transform_omniglot = transforms.Compose([
     transforms.ToTensor()  # Convert images to PyTorch tensors
     ])
     
-    
 # use for CalTech 101 Silhouettes  
 def convert_to_tensors(dataset):
     images, labels = [], []
@@ -195,11 +194,11 @@ def run(args):
     elif(args.model_name == 'gottlieb_kan'):
         model = GottliebKAN(args.layers, spline_order = args.spline_order)
     elif(args.model_name == 'mlp'):
-        model = MLP(args.layers, base_activation = args.base_activation, norm_type = args.norm_type, use_attn  = args.use_attn)
+        model = MLP(args.layers, base_activation = args.base_activation, norm_type = args.norm_type)
     elif(args.model_name == 'fc_kan'):
         model = FC_KAN(args.layers, args.func_list, combined_type = args.combined_type, grid_size = args.grid_size, spline_order = args.spline_order)
     elif(args.model_name == 'efficient_kan'):
-        model = EfficientKAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order)
+        model = EfficientKAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order, net_type = args.net_type)
     elif(args.model_name == 'prkan'):
         model = PRKAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order, num_grids = args.num_grids, func = args.func, norm_type = args.norm_type, base_activation = args.base_activation, methods = args.methods, combined_type = args.combined_type, norm_pos = args.norm_pos)
     elif(args.model_name == 'skan'):
@@ -222,7 +221,7 @@ def run(args):
     elif(args.model_name == 'dbg_kan'):
         model = DBG_KAN(args.layers, grid_size = args.grid_size, spline_order = args.spline_order, base_activation = args.base_activation, norm_type = args.norm_type, basis_type=args.basis_type, gate_type = args.gate_type, use_base_update = args.use_base_update)    
     elif(args.model_name == 'sech_kan'):
-        model = SechKAN(args.layers, norm1_type=args.norm1_type, norm2_type = args.norm2_type, base_activation=args.base_activation, use_width = False, norm_mode = "all", num_grids = args.num_grids) 
+        model = SechKAN(args.layers, norm1_type=args.norm1_type, norm2_type = args.norm2_type, base_activation=args.base_activation, use_width = False, norm_mode = "all", num_grids = args.num_grids, net_type = args.net_type) # use_width = False
     elif(args.model_name == 'sech_kan_cnn'):
         
         if (args.ds_name in ['cifar10', 'cifar100']):
@@ -237,10 +236,34 @@ def run(args):
         else: num_classes = 10
 
         model = SechKAN_CNN(data_width, data_height, in_channel,  middle_channel = args.middle_channel, out_channel = args.out_channel, num_classes=num_classes, classifier_type = args.classifier_type, base_activation = args.base_activation, hidden_size = args.hidden_size, num_grids = args.num_grids, norm1_type = args.norm1_type, norm2_type = args.norm2_type)          
+    elif(args.model_name == 'ms_kan'):
+        model = MSKAN(args.layers, grids=[int(x) for x in args.grids.split(',')], orders=[int(x) for x in args.orders.split(',')], norm1_type = args.norm1_type, norm2_type = args.norm2_type, base_activation = args.base_activation, shared_phases=True, compressed_phases=False, combined_type=args.combined_type)  
+    elif(args.model_name == 'small_mskan_cnn'):
+        if (args.ds_name in ['cifar10', 'cifar100', 'svhn']):
+            data_width = data_height = 32
+            in_channel = 3
+        else:
+            data_width = data_height = 28
+            in_channel = 1
+        
+        if (args.ds_name == 'cifar100'): num_classes = 100
+        elif (args.ds_name == 'cal_si'): num_classes = 102
+        else: num_classes = 10
+ 
+        model = Small_MSKAN_CNN(data_width, data_height, in_channel, middle_channel=8, out_channel=12, num_classes=num_classes, classifier_type = args.classifier_type, base_activation = args.base_activation, hidden_size = args.hidden_size)   
     else:
         # add other KANs here
         raise ValueError("Unsupported network type.")
+    
     model.to(device)
+
+    # Compute FLOPs
+    dummy = next(iter(trainloader))[0]
+    if args.model_name not in ['small_mskan_cnn', 'sech_kan_cnn']:
+        dummy = dummy.view(-1, args.layers[0])
+    dummy = dummy[:1].to(device)
+    model.eval()
+    total_flops = calculate_flops(model, dummy)
 
     # Define optimizer
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
@@ -275,6 +298,29 @@ def run(args):
     
     start = time.time() # should be here better
     
+    # Profiling variables -------------------------------------------------------------------|
+    profile_epoch = args.profile_epoch      # profile only the first epoch (0 = disabled)
+    warmup_batches = 20                     # Ignore the first 20 warm-up batches
+
+    forward_times = []
+    backward_times = []
+    throughputs = []
+
+    torch.cuda.reset_peak_memory_stats(device)
+
+    forward_start = torch.cuda.Event(enable_timing=True)
+    forward_end = torch.cuda.Event(enable_timing=True)
+
+    backward_start = torch.cuda.Event(enable_timing=True)
+    backward_end = torch.cuda.Event(enable_timing=True)
+    
+    peak_memory = 0
+    avg_forward_time = 0
+    avg_backward_time = 0
+    throughput = 0
+            
+    #----------------------------------------------------------------------------------------|
+
     for epoch in range(1, args.epochs + 1):
         # Train
         model.train()
@@ -286,12 +332,34 @@ def run(args):
                     images = images.view(-1, args.layers[0]).to(device)
 
                 optimizer.zero_grad()
+                
+                # Record forward time
+                if epoch == profile_epoch and i >= warmup_batches: forward_start.record()
                 output = model(images.to(device))
+                if epoch == profile_epoch and i >= warmup_batches: forward_end.record()
                 
                 loss = criterion(output, labels.to(device))
                 train_loss += loss.item()
+                
+                # Record backward time
+                if epoch == profile_epoch and i >= warmup_batches: backward_start.record()
                 loss.backward()
+                if epoch == profile_epoch and i >= warmup_batches: backward_end.record()
+                
                 optimizer.step()
+                
+                # Record forward time, backward time, peak GPU, training throughput
+                if epoch == profile_epoch and i >= warmup_batches:
+                    torch.cuda.synchronize()
+
+                    fwd = forward_start.elapsed_time(forward_end)      # ms
+                    bwd = backward_start.elapsed_time(backward_end)    # ms
+
+                    forward_times.append(fwd)
+                    backward_times.append(bwd)
+
+                    throughput = images.size(0) / ((fwd + bwd) / 1000.0)
+                    throughputs.append(throughput)
                 
                 # Update learning rate
                 if(args.scheduler not in ['StepLR', 'ExponentialLR', 'CosineAnnealingLR']):
@@ -307,6 +375,14 @@ def run(args):
         
         train_loss /= len(trainloader)
         train_accuracy /= len(trainloader)
+        
+        # Calculate forward time, backward time, peak GPU, training throughput
+        if epoch == profile_epoch and i >= warmup_batches:      
+            peak_memory = torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+            avg_forward_time = sum(forward_times)/len(forward_times)
+            avg_backward_time = sum(backward_times)/len(backward_times)
+            throughput = sum(throughputs)/len(throughputs)
+
         
         grad_norm = cal_grad_norm(model)
         if grad_norm < 1e-5:
@@ -350,6 +426,7 @@ def run(args):
         print(f"Epoch [{epoch}/{args.epochs}], Train Loss: {train_loss:.6f}, Train Accuracy: {train_accuracy:.6f}, Grad mean: {grad_mean.item():.6f}, Grad L2 Norm: {grad_norm:.6f}")
         print(f"Epoch [{epoch}/{args.epochs}], Val Loss: {val_loss:.6f}, Val Accuracy: {val_accuracy:.6f}, F1: {f1:.6f}, Precision: {pre:.6f}, Recall: {recall:.6f}")
         
+        # Testing
         test_loss, test_accuracy = 0, 0
         if (args.ds_name == 'cal_si'):
             
@@ -381,6 +458,7 @@ def run(args):
             
             print(f"Epoch [{epoch}/{args.epochs}], Test Loss: {test_loss:.6f}, Test Accuracy: {test_accuracy:.6f}, F1: {f1_test:.6f}, Precision: {pre_test:.6f}, Recall: {recall_test:.6f}")
 
+        # Write results to file
         if test_accuracy != 0: # there has a test set
             write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'epoch':epoch, 'test_accuracy':test_accuracy, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'test_f1_macro':f1_test, 'test_pre_macro':pre_test, 'test_re_macro':recall_test,  'val_f1_macro':f1, 'val_pre_macro':pre, 'val_re_macro':recall, 'best_epoch':best_epoch, 'test_loss': test_loss, 'val_loss': val_loss, 'train_loss':train_loss, 'learning_rate': optimizer.param_groups[0]['lr'], 'grad_mean': grad_mean.item(), 'grad_L2_norm': grad_norm}, file_access = 'a')
         else:
@@ -405,11 +483,17 @@ def run(args):
     torch.save(model, output_path + '/' + saved_model_name)
     used_params = count_params(model)
     
+    print(f"Average Forward Time : {avg_forward_time:.3f} ms")
+    print(f"Average Backward Time: {avg_backward_time:.3f} ms")
+    print(f"Peak GPU Memory      : {peak_memory:.2f} MB")
+    print(f"Training Throughput  : {throughput:.2f} samples/s")
+    print(f"FLOPs: {total_flops:,.0f}")
+
     '''model = copy.deepcopy(model).cpu() # for more correct count
     # Calculate FLOPs
     flops, _ = get_model_complexity_info(model, (args.layers[0],), as_strings=True, print_per_layer_stat=True)'''
-    
-    write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start, 'used_params':used_params}, file_access = 'a')
+
+    write_single_dict_to_jsonl(output_path + '/' + saved_model_history, {'training time':end-start, 'used_params':used_params, 'flops':total_flops, 'peak_memory': peak_memory, 'avg_forward_time':avg_forward_time, 'avg_backward_time':avg_backward_time, 'throughput':throughput}, file_access = 'a')
     
 
 def predict_set(args):
@@ -539,23 +623,12 @@ def main(args):
         compare(args)'''
     
 if __name__ == "__main__":
-    
-    '''
-    # Calculate FLOPs
-    import torch
-    from fvcore.nn import FlopCountAnalysis
-
-    # Assuming FC_KAN is your model
-    #model = FC_KAN([784, 64, 10])
-    model = FC_KAN([784, 64, 10])
-    dummy_input = torch.randn(1, 784)  # Adjust based on your input shape
-
-    flop_counter = FlopCountAnalysis(model, dummy_input)
-    flops = flop_counter.total()
-
-    print(f"Total FLOPs: {flops:.2e}")'''
 
     parser = argparse.ArgumentParser(description='Training Parameters')
+    
+    
+    parser.add_argument('--profile_epoch', type=int, default=0) 
+    
     parser.add_argument('--mode', type=str, default='train') # or predict_set
     parser.add_argument('--model_name', type=str, default='efficient_kan')
     parser.add_argument('--epochs', type=int, default=10)
@@ -626,6 +699,9 @@ if __name__ == "__main__":
     parser.add_argument('--basis_type', type=str, default='both') # b_spline, rbf, or both
     parser.add_argument('--gate_type', type=str, default='shared_head')
     parser.add_argument('--use_base_update', action='store_true')
+    
+    # SechKAN + EffcientKAN
+    parser.add_argument('--net_type', type=str, default='standard') # 1d_projection, no_1d_projection
         
     args = parser.parse_args()
     
@@ -646,5 +722,3 @@ if __name__ == "__main__":
     set_seed(seed, device)
     
     main(args)
-    
-
