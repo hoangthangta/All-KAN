@@ -813,7 +813,7 @@ if __name__ == "__main__":
         json.dump(results, f, indent=4, default=float)
             
     print("\n" + "="*50)
-    print("Final results (Mean ± Std over 5 seeds)")
+    print(f"\nFinal results (Mean ± Std over {len(seeds)} seeds):")
     print("="*50)
 
     for k, v in results.items():
