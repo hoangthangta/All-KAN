@@ -1,3 +1,5 @@
+Accepted for publication in **Neurocomputing**: https://www.sciencedirect.com/science/article/pii/S0925231226024665
+
 ## Running SechKAN
 
 This directory contains the implementation of **SechKAN: Kolmogorov–Arnold Networks with Hyperbolic Secant Functions**.
