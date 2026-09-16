@@ -265,6 +265,20 @@ Thank you all for your contributions and suggestions to this repo. If you like i
 You can cite these papers.
 
 ```
+@article{TA2026135068,
+title = {SechKAN: Kolmogorov–Arnold networks with hyperbolic secant functions},
+journal = {Neurocomputing},
+volume = {706},
+pages = {135068},
+year = {2026},
+issn = {0925-2312},
+doi = {https://doi.org/10.1016/j.neucom.2026.135068},
+url = {https://www.sciencedirect.com/science/article/pii/S0925231226024665},
+author = {Hoang-Thang Ta}
+}
+```
+
+```
 @misc{ta2025afkanactivationfunctionbasedkolmogorovarnold,
       title={AF-KAN: Activation Function-Based Kolmogorov-Arnold Networks for Efficient Representation Learning}, 
       author={Hoang-Thang Ta and Anh Tran},
