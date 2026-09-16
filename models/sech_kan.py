@@ -315,7 +315,7 @@ class SechKAN(nn.Module):
         norm2_type: str = "layer",
         norm_mode: str = "except_first",
         use_width : bool = False,
-        net_type: str = 'standard' # no_1d_projection
+        net_type: str = 'standard' # standard = 1d_projection
     ): 
         super().__init__()
         assert len(net_layers) >= 2
@@ -333,7 +333,7 @@ class SechKAN(nn.Module):
             else:
                 apply_norm = False  # no norm
 
-            if (net_type == 'standard'):
+            if (net_type == 'standard'): # with 1d_projection
                 self.layers.append(
                     SechKANLayer(
                         input_dim=in_dim,
@@ -348,8 +348,8 @@ class SechKAN(nn.Module):
                         spline_weight_init_scale=spline_weight_init_scale,
                         use_width=use_width
                     )
-                )
-            else:
+                ) 
+            else: # without 1d_projection
                 self.layers.append(
                     SechKANNoProjectionLayer(
                         input_dim=in_dim,
