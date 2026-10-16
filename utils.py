@@ -73,13 +73,12 @@ def remove_unused_params(model):
     return model
     
     
-def set_seed(seed : int = 42, device = 'cuda'):
-
+def set_seed(seed: int = 42, device="cuda"):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    if device == 'cuda':
+    if torch.device(device).type == "cuda":
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
