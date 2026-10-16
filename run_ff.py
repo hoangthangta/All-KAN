@@ -98,6 +98,19 @@ def takagi_1d(x, terms=20):
 
 
 def cantor_1d(x, terms=20):
+    y = torch.zeros_like(x)
+    xx = x.clamp(0, 1)
+    alive = torch.ones_like(x)
+    for n in range(terms):
+        digit = torch.floor(3 * xx).clamp(max=2)
+        y += alive * (digit >= 1).to(x.dtype) / 2 ** (n + 1)
+        alive *= (digit != 1).to(x.dtype)
+        xx = 3 * xx - digit
+    y = torch.where(x >= 1, torch.ones_like(x), y)
+    return torch.where(torch.isnan(x), x, y)
+
+# Cantor-like
+def cantor_1d_like(x, terms=20):
     """
     Cantor function (Devil's staircase).
     Assumes x in [0, 1].
